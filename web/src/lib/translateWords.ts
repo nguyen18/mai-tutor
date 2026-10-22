@@ -92,6 +92,35 @@ export function useWordEntries(target: TargetLanguage, bank: WordBank, words: st
  */
 export async function entryFor(target: TargetLanguage, word: string): Promise<CheatsheetEntry | null> {
   if (!backendConfigured) return null
-  if (!fetched.has(cacheKey(target, word))) await fetchChunk(target, [word])
-  return fetched.get(cacheKey(target, word)) ?? null
+  const key = cacheKey(target, word)
+  if (!fetched.has(key) && !untranslated.has(key)) await fetchChunk(target, [word])
+  return fetched.get(key) ?? null
+}
+
+// Words the backend has no translation for (asked ahead, or saved with an entry), so entryFor doesn't ask again.
+const untranslated = new Set<string>()
+
+/** Entries saved earlier (with a journal entry; null: no translation), so entryFor needs no request. */
+export function primeEntries(target: TargetLanguage, saved: Record<string, CheatsheetEntry | null>) {
+  for (const [word, entry] of Object.entries(saved)) {
+    if (entry) fetched.set(cacheKey(target, word), entry)
+    else untranslated.add(cacheKey(target, word))
+  }
+}
+
+/**
+ * Fetches the entries of English words not fetched yet (the journal asks for an entry's translated words
+ * ahead of a tap) and returns every asked word's entry by word; null for words with no translation.
+ */
+export async function fetchEntries(target: TargetLanguage, words: string[]): Promise<Record<string, CheatsheetEntry | null>> {
+  const out: Record<string, CheatsheetEntry | null> = {}
+  if (!backendConfigured) return out
+  const missing = [...new Set(words)].filter((w) => !fetched.has(cacheKey(target, w)) && !untranslated.has(cacheKey(target, w)))
+  for (let i = 0; i < missing.length; i += CHUNK) await fetchChunk(target, missing.slice(i, i + CHUNK))
+  for (const word of new Set(words)) {
+    const entry = fetched.get(cacheKey(target, word)) ?? null
+    if (!entry) untranslated.add(cacheKey(target, word))
+    out[word] = entry
+  }
+  return out
 }

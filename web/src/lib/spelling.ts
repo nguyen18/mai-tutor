@@ -1,3 +1,5 @@
+import type { CheatsheetEntry } from './cheatsheet'
+import type { WordAlternatives } from './wordOptions'
 import { callFunction } from './backend'
 import type { TargetLanguage } from './languages'
 
@@ -54,6 +56,12 @@ export type SpellingCheck = {
    *  alone (by `keptWordKey`). */
   wordPicks?: Record<string, string>
   checkedAt: string
+  /**
+   * What the page's word boxes show, fetched in the background after the check and saved here so a tap
+   * opens without a request (lib/wordLookups.ts): each tappable word's options by lowercase word, and the
+   * Cheatsheet entry of each English word Mai translated (null: none).
+   */
+  lookups?: { words: Record<string, WordAlternatives>; english: Record<string, CheatsheetEntry | null> }
 }
 
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
