@@ -3055,3 +3055,17 @@ button.record-nudge::after {
   opacity: 0.8;
   pointer-events: none;
 }
+
+/* Settings: the account section. */
+.account-form {
+  margin-top: 12px;
+}
+
+.account-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.account-actions button.link {
+  margin: 0;
+}

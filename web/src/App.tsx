@@ -4,6 +4,7 @@ import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'
 import { ROUTE_HREF, useRoute, type Route } from './lib/useRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { startSync } from './lib/sync'
 import './App.css'
 
 // The Cheatsheet carries ~100 KB of dictionary data, so it loads only when opened.
@@ -23,6 +24,11 @@ const COMING_SOON = ['Personal phrasebook', 'Feelings map', 'Flashcards']
 
 function App() {
   const route = useRoute()
+
+  // Syncing with the user's account, when they're signed in. The Supabase client loads in the background.
+  useEffect(() => {
+    void startSync()
+  }, [])
 
   // Pages start at the top, except the Discoverer, which scrolls itself to the latest message.
   useEffect(() => {

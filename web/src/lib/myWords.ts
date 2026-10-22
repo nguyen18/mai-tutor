@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { storeSet, useStored } from './localStore'
 import { displayWord, tokenize } from './wordCounts'
 
 // The user's own most common words, shown as the Cheatsheet's "100 most common words you use" list.
@@ -7,30 +7,18 @@ import { displayWord, tokenize } from './wordCounts'
 
 const STORAGE_KEY = 'mai-tutor:my-words'
 export const MAX_MY_WORDS = 100
-
-function loadWords(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as string[]
-  } catch {
-    // Storage unavailable or corrupt; start fresh.
-  }
-  return []
-}
+const NO_WORDS: string[] = []
 
 export function saveMyWords(words: string[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(words.slice(0, MAX_MY_WORDS)))
-  } catch {
-    // Persistence is a convenience only.
-  }
+  storeSet(STORAGE_KEY, words.slice(0, MAX_MY_WORDS))
 }
 
 const sameWord = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 export function useMyWords() {
-  const [words, setWords] = useState<string[]>(loadWords)
-  useEffect(() => saveMyWords(words), [words])
+  const [words, setStored] = useStored<string[]>(STORAGE_KEY, NO_WORDS)
+  // Every change goes through here, so the list never gets longer than MAX_MY_WORDS.
+  const setWords = (next: string[]) => setStored(next.slice(0, MAX_MY_WORDS))
   return {
     words,
     /** Adds words at the end, skipping ones already in the list; returns how many were added. */

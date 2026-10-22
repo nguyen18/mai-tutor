@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useStored } from './localStore'
 
 // v2 (2026-09-27): picks are per meaning. Picks saved by the old format (one translation per word) are
 // left behind in `mai-tutor:cheatsheet-picks` and ignored.
 const STORAGE_KEY = 'mai-tutor:cheatsheet-picks-v2'
+const NO_PICKS: Picks = {}
 
 // Keys (see meaningKey/optionKey) -> the picked meaning id, or the picked translation's text.
 // Anything without a pick shows its first (default) meaning or translation.
@@ -27,26 +28,8 @@ export const partKey = (listId: string, part: string) => `part|${listId}|${part.
  */
 export const pronounKey = (listId: string, kind: 'listener' | 'about' | 'speaker') => `pronoun-${kind}|${listId}`
 
-function loadPicks(): Picks {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Picks
-  } catch {
-    // Storage unavailable or corrupt; start fresh.
-  }
-  return {}
-}
-
 export function usePicks() {
-  const [picks, setPicks] = useState<Picks>(loadPicks)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(picks))
-    } catch {
-      // Persistence is a convenience only.
-    }
-  }, [picks])
+  const [picks, setPicks] = useStored<Picks>(STORAGE_KEY, NO_PICKS)
 
   // Pass null to go back to the default.
   const setPick = (key: string, value: string | null) =>

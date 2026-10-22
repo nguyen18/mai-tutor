@@ -1,30 +1,12 @@
-import { useEffect, useState } from 'react'
 import { STUDY_PLAN } from '../lib/studyPlan'
+import { useStored } from '../lib/localStore'
 import { ROUTE_HREF } from '../lib/useRoute'
 import maiAvatar from '../assets/mai-placeholder.png'
 
-const STORAGE_KEY = 'mai-tutor:study-plan'
-
-function loadDone(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as string[]
-  } catch {
-    // Storage unavailable or corrupt; start fresh.
-  }
-  return []
-}
+const NONE_DONE: string[] = []
 
 export function Home() {
-  const [done, setDone] = useState<string[]>(loadDone)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(done))
-    } catch {
-      // Persistence is a convenience only.
-    }
-  }, [done])
+  const [done, setDone] = useStored<string[]>('mai-tutor:study-plan', NONE_DONE)
 
   const toggle = (id: string) =>
     setDone((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]))

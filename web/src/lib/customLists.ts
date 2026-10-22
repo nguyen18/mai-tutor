@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
 import type { CheatsheetList } from './cheatsheet'
 import { targetById } from './languages'
+import { useStored } from './localStore'
 
 const STORAGE_KEY = 'mai-tutor:custom-lists'
+const NO_LISTS: CustomList[] = []
 
 export type CustomEntry = { word: string; translation: string }
 
@@ -34,26 +35,8 @@ function newId(): string {
     : `list-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
-function loadLists(): CustomList[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as CustomList[]
-  } catch {
-    // Storage unavailable or corrupt; start fresh.
-  }
-  return []
-}
-
 export function useCustomLists() {
-  const [lists, setLists] = useState<CustomList[]>(loadLists)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lists))
-    } catch {
-      // Persistence is a convenience only.
-    }
-  }, [lists])
+  const [lists, setLists] = useStored<CustomList[]>(STORAGE_KEY, NO_LISTS)
 
   const updateList = (id: string, change: (list: CustomList) => CustomList) =>
     setLists((ls) => ls.map((l) => (l.id === id ? change(l) : l)))
