@@ -2,7 +2,7 @@ import maiAvatar from '../assets/mai-placeholder.png'
 
 export function Home() {
   return (
-    <main className="app">
+    <main className="app home">
       <p className="wordmark">
         <span className="wordmark-name">MAI</span>
         <span className="wordmark-tagline">your language tutor</span>
