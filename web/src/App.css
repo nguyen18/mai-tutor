@@ -3000,3 +3000,14 @@ button.record-nudge::after {
 .account-actions button.link {
   margin: 0;
 }
+
+/* Home: the wordmark and greeting sit in the middle of the screen (owner's request 2026-10-22). Even top
+   and bottom padding, so it's truly centred; the ☰ menu floats over the corner. */
+.app.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 32px;
+}
