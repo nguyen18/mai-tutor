@@ -29,6 +29,7 @@ import { entryFor } from '../lib/translateWords'
 import { entryDate } from '../lib/journalDates'
 import { EntryHead } from '../components/EntryHead'
 import { loadWordOptions, type WordAlternatives } from '../lib/wordOptions'
+import { currentCheck, useWordLookups } from '../lib/wordLookups'
 
 // The journal: entries written in the target language (English where the learner doesn't know a word yet),
 // latest on top. Each shows the user's own words untouched (blue), and underneath, Mai's corrected copy
@@ -47,6 +48,8 @@ export function Journal() {
   const [extraChecks] = useJournalExtraChecks()
   const [editing, setEditing] = useState<Editing>(null)
   const [checks, setChecks] = useState<CheckState>({})
+  // Every word box's content, fetched ahead of a tap and saved with the entry.
+  useWordLookups(entries, save)
   // The latest entries, for checks that finish after the entry was edited again.
   const entriesRef = useRef(entries)
   useLayoutEffect(() => {
@@ -201,8 +204,7 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
   const [confirming, setConfirming] = useState(false)
   const lang = targetById(entry.targetId)
   // A check from before the entry was last edited (or in an older format) doesn't count.
-  const check =
-    entry.check?.input === entry.text && entry.check.review && 'extraChecks' in entry.check ? entry.check : undefined
+  const check = currentCheck(entry)
 
   const date = entryDate(entry.when, lang.code)
 
