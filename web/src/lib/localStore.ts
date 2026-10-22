@@ -10,7 +10,6 @@ export const SYNCED_KEYS = [
   'mai-tutor:my-words',
   'mai-tutor:custom-lists',
   'mai-tutor:cheatsheet-picks-v2',
-  'mai-tutor:study-plan',
   'mai-tutor:target-language',
   'mai-tutor:journal-extra-checks',
   'mai-tutor:chat',
