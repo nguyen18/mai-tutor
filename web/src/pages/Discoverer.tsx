@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { QUESTION_COUNT, MAI_SCRIPT } from '../lib/conversation'
 import { displayWord, tokenize, topWords } from '../lib/wordCounts'
 import { saveMyWords } from '../lib/myWords'
+import { useStored } from '../lib/localStore'
 import { ROUTE_HREF } from '../lib/useRoute'
 import { dictationSupported, useDictation } from '../lib/useDictation'
 import maiAvatar from '../assets/mai-placeholder.png'
 
-const STORAGE_KEY = 'mai-tutor:chat'
 const FILLER_CHIPS = ['um', 'uh']
 
 type SavedState = {
@@ -16,30 +16,12 @@ type SavedState = {
 
 const EMPTY_STATE: SavedState = { replies: [], draft: '' }
 
-function loadState(): SavedState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as SavedState
-  } catch {
-    // Storage unavailable or corrupt; start fresh.
-  }
-  return EMPTY_STATE
-}
-
 // The Personal Word List Discoverer: chat with Mai, then see your top 100 words.
 export function Discoverer() {
-  const [state, setState] = useState<SavedState>(loadState)
+  const [state, setState] = useStored<SavedState>('mai-tutor:chat', EMPTY_STATE)
   const [view, setView] = useState<'chat' | 'results'>('chat')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    } catch {
-      // Persistence is a convenience only.
-    }
-  }, [state])
 
   const { replies, draft } = state
   const finished = replies.length >= QUESTION_COUNT

@@ -1,3 +1,4 @@
+import { AccountCard } from '../components/AccountCard'
 import { useJournalExtraChecks } from '../lib/journal'
 import { TARGET_LANGUAGES, useTargetLanguage, type TargetLanguage } from '../lib/languages'
 
@@ -16,6 +17,8 @@ export function Settings() {
       <header className="header">
         <h1>Settings</h1>
       </header>
+
+      <AccountCard />
 
       <section className="card">
         <div className="card-head">

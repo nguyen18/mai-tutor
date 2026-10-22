@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { notifyLocalChange, recordDeleted, useStored, type Codec } from './localStore'
 import type { CaptionCheck, SpellingCheck } from './spelling'
 
 // Journal entries and the user's stickers, saved in this browser's IndexedDB (photos, stickers and audio
-// are files, too big for localStorage). There are no accounts yet, so they stay on this device.
+// are files, too big for localStorage). When the user is signed in, lib/sync.ts copies them to their
+// account and brings in other devices' changes.
 
 /** A photo or sticker placed on the entry sheet. Sizes are fractions of the sheet's width, so it scales. */
 export type SheetItem = {
@@ -41,6 +43,12 @@ export type JournalEntry = {
   check?: SpellingCheck
   createdAt: string
   updatedAt: string
+  /**
+   * When anything in the entry last changed on any device, including its spelling check (which leaves
+   * `updatedAt`, the user's last edit, alone); the sync keeps the latest. Missing on entries saved
+   * before accounts: `updatedAt` stands in.
+   */
+  changedAt?: string
 }
 
 export type Sticker = { id: string; image: Blob; aspect: number; createdAt: string }
@@ -167,6 +175,39 @@ function askToPersist() {
 
 export const newId = () => crypto.randomUUID()
 
+/** When an entry last changed, for the sync. */
+export const entryChangedAt = (entry: JournalEntry) => entry.changedAt ?? entry.updatedAt
+
+// The stores without React (also used by lib/sync.ts). Pictures and audio come back as Blobs.
+export const allEntries = async () => (await run<JournalEntry[]>(ENTRIES, 'readonly', (s) => s.getAll())).map(readEntry)
+export const putEntry = async (entry: JournalEntry) => {
+  const stored = await storeEntry(entry)
+  await run(ENTRIES, 'readwrite', (s) => s.put(stored))
+}
+export const deleteEntry = (id: string) => run(ENTRIES, 'readwrite', (s) => s.delete(id))
+export const allStickers = async () =>
+  (await run<Sticker[]>(STICKERS, 'readonly', (s) => s.getAll())).map((st) => ({
+    ...st,
+    image: toBlob(st.image as Blob | StoredFile),
+  }))
+export const putSticker = async (sticker: Sticker) => {
+  const stored = { ...sticker, image: await toStored(sticker.image) }
+  await run(STICKERS, 'readwrite', (s) => s.put(stored))
+}
+export const deleteSticker = (id: string) => run(STICKERS, 'readwrite', (s) => s.delete(id))
+
+/** Fired by lib/sync.ts after it changed the journal or the stickers here, so open pages reload them. */
+export const JOURNAL_SYNCED_EVENT = 'mai-tutor:journal-synced'
+
+// Reloads on JOURNAL_SYNCED_EVENT.
+function useReload(load: () => void) {
+  useEffect(() => {
+    load()
+    window.addEventListener(JOURNAL_SYNCED_EVENT, load)
+    return () => window.removeEventListener(JOURNAL_SYNCED_EVENT, load)
+  }, [load])
+}
+
 /** "2026-10-01T21:30" for now, in local time, for a datetime-local input. */
 export function nowLocal(): string {
   const d = new Date()
@@ -183,24 +224,28 @@ export function useJournal() {
   const [entries, setEntries] = useState<JournalEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    run<JournalEntry[]>(ENTRIES, 'readonly', (s) => s.getAll())
-      .then((all) => setEntries(all.map(readEntry).sort(latestFirst)))
-      .catch(() => {
-        setEntries([])
-        setError("This browser can't save journal entries (private browsing can block it).")
-      })
-  }, [])
+  useReload(
+    useCallback(() => {
+      allEntries()
+        .then((all) => setEntries(all.sort(latestFirst)))
+        .catch(() => {
+          setEntries([])
+          setError("This browser can't save journal entries (private browsing can block it).")
+        })
+    }, []),
+  )
 
   const save = useCallback(async (entry: JournalEntry) => {
-    const stored = await storeEntry(entry)
-    await run(ENTRIES, 'readwrite', (s) => s.put(stored))
+    const saved = { ...entry, changedAt: new Date().toISOString() }
+    await putEntry(saved)
     askToPersist()
-    setEntries((list) => [...(list ?? []).filter((e) => e.id !== entry.id), entry].sort(latestFirst))
+    notifyLocalChange()
+    setEntries((list) => [...(list ?? []).filter((e) => e.id !== saved.id), saved].sort(latestFirst))
   }, [])
 
   const remove = useCallback(async (id: string) => {
-    await run(ENTRIES, 'readwrite', (s) => s.delete(id))
+    await deleteEntry(id)
+    recordDeleted('entry', id)
     setEntries((list) => (list ?? []).filter((e) => e.id !== id))
   }, [])
 
@@ -211,27 +256,22 @@ export function useJournal() {
 export function useStickers() {
   const [stickers, setStickers] = useState<Sticker[]>([])
 
-  useEffect(() => {
-    run<Sticker[]>(STICKERS, 'readonly', (s) => s.getAll())
-      .then((all) =>
-        setStickers(
-          all
-            .map((st) => ({ ...st, image: toBlob(st.image as Blob | StoredFile) }))
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-        ),
-      )
-      .catch(() => {})
-  }, [])
+  useReload(
+    useCallback(() => {
+      allStickers()
+        .then((all) => setStickers(all.sort((a, b) => b.createdAt.localeCompare(a.createdAt))))
+        .catch(() => {})
+    }, []),
+  )
 
   const add = useCallback(async (sticker: Sticker) => {
     setStickers((list) => [sticker, ...list])
-    const stored = { ...sticker, image: await toStored(sticker.image) }
-    await run(STICKERS, 'readwrite', (s) => s.put(stored)).catch(() => {})
+    await putSticker(sticker).then(notifyLocalChange, () => {})
   }, [])
 
   const remove = useCallback(async (id: string) => {
     setStickers((list) => list.filter((s) => s.id !== id))
-    await run(STICKERS, 'readwrite', (s) => s.delete(id)).catch(() => {})
+    await deleteSticker(id).then(() => recordDeleted('sticker', id), () => {})
   }, [])
 
   return { stickers, add, remove }
@@ -253,38 +293,9 @@ export function objectUrl(blob: Blob): string {
 }
 
 // The journal's extra checks (other regions' words, one word for "I"), off by default: the review is a
-// spellchecker unless the learner turns them on in Settings. Shared by every page, in sync across tabs.
-const EXTRA_CHECKS_KEY = 'mai-tutor:journal-extra-checks'
-const EXTRA_CHECKS_EVENT = 'mai-tutor:journal-extra-checks-change'
-// Used when localStorage is unavailable: the choice then lasts until the page reloads.
-let unsavedExtraChecks = false
-
-function readExtraChecks(): boolean {
-  try {
-    const saved = localStorage.getItem(EXTRA_CHECKS_KEY)
-    return saved === null ? unsavedExtraChecks : saved === 'true'
-  } catch {
-    return unsavedExtraChecks
-  }
-}
+// spellchecker unless the learner turns them on in Settings. Saved as "true"/"false".
+const BOOLEAN: Codec<boolean> = { parse: (raw) => raw === 'true', serialize: String }
 
 export function useJournalExtraChecks(): [boolean, (on: boolean) => void] {
-  const on = useSyncExternalStore((onChange) => {
-    window.addEventListener('storage', onChange)
-    window.addEventListener(EXTRA_CHECKS_EVENT, onChange)
-    return () => {
-      window.removeEventListener('storage', onChange)
-      window.removeEventListener(EXTRA_CHECKS_EVENT, onChange)
-    }
-  }, readExtraChecks)
-  const set = (value: boolean) => {
-    unsavedExtraChecks = value
-    try {
-      localStorage.setItem(EXTRA_CHECKS_KEY, String(value))
-    } catch {
-      // Kept in memory instead.
-    }
-    window.dispatchEvent(new Event(EXTRA_CHECKS_EVENT))
-  }
-  return [on, set]
+  return useStored('mai-tutor:journal-extra-checks', false, BOOLEAN)
 }
