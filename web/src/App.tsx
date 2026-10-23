@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Discoverer } from './pages/Discoverer'
-import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'
 import { ROUTE_HREF, useRoute, type Route } from './lib/useRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -13,9 +12,8 @@ const Cheatsheet = lazy(() => import('./pages/Cheatsheet').then((m) => ({ defaul
 const Journal = lazy(() => import('./pages/Journal').then((m) => ({ default: m.Journal })))
 
 const MENU_ITEMS: { route: Route; label: string }[] = [
-  { route: 'home', label: 'Home' },
-  { route: 'cheatsheet', label: 'Cheatsheet' },
   { route: 'journal', label: 'Journal' },
+  { route: 'cheatsheet', label: 'Cheatsheet' },
   { route: 'settings', label: 'Settings' },
 ]
 
@@ -47,16 +45,14 @@ function App() {
             <Cheatsheet />
           </Suspense>
         </ErrorBoundary>
-      ) : route === 'journal' ? (
+      ) : route === 'settings' ? (
+        <Settings />
+      ) : (
         <ErrorBoundary message="Couldn't load the journal. Check your connection and try again.">
           <Suspense fallback={<main className="app"><p className="muted">Loading your journal…</p></main>}>
             <Journal />
           </Suspense>
         </ErrorBoundary>
-      ) : route === 'settings' ? (
-        <Settings />
-      ) : (
-        <Home />
       )}
     </>
   )
