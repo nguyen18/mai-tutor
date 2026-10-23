@@ -2806,6 +2806,10 @@ ruby.fix {
 }
 
 .journal-text.annotated .fix-new {
+  /* Lifted a little off the word it replaces, so the two don't crowd each other (owner's request
+     2026-10-22). The ruled lines are tall enough that it stays inside its line. */
+  position: relative;
+  top: -5px;
   font-size: 0.8em;
 }
 
