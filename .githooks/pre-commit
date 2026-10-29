@@ -1,0 +1,20 @@
+#!/bin/sh
+# Stops a commit that would add a secret (API key, token, password, private key) to this public repo.
+# Scans only what's staged, with gitleaks' built-in rules (they know Notion, Supabase, GitHub, AWS keys
+# and more). Enabled per clone with `git config core.hooksPath .githooks` (see ARCHITECTURE.md).
+#
+# False positive? Put `gitleaks:allow` in a comment on that line, or add the finding's fingerprint (which
+# gitleaks prints) to .gitleaksignore. A real secret? Unstage it, move it to a git-ignored file
+# (supabase/functions/.env, web/.env.local) and, if it was ever pushed, rotate it.
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks isn't installed, so this commit wasn't checked for secrets (brew install gitleaks)." >&2
+  exit 0
+fi
+
+if ! gitleaks git --pre-commit --staged --redact --no-banner --verbose; then
+  echo >&2
+  echo "pre-commit: commit stopped: the staged changes look like they contain a secret (above, redacted)." >&2
+  echo "Move it to a git-ignored file, or mark a false positive with a gitleaks:allow comment." >&2
+  exit 1
+fi

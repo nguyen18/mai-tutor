@@ -15,3 +15,6 @@ Read `ARCHITECTURE.md` first (the project's deep-dive doc; keep it updated after
   review. Fix translations there, not by hand here.
 - Another Claude session may be working in this checkout: check `git branch --show-current` and
   `git status` before switching branches, and use a worktree when it's busy.
+- **Public repo: no secrets in commits.** A gitleaks pre-commit hook (`.githooks/pre-commit`, enabled with
+  `git config core.hooksPath .githooks`) blocks staged secrets. If it stops a commit, move the secret to a
+  git-ignored file; don't bypass it with `--no-verify`.
