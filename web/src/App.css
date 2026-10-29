@@ -1909,6 +1909,24 @@ button.tip-trigger.word-mark.picked {
   padding: 20px 16px 96px;
 }
 
+/* On a computer the journal fills the page (owner's request 2026-10-29), with room on the left for the
+   floating 💬 and ☰ buttons and the same on the right. Photos and stickers grow with it: they're sized in
+   fractions of the sheet's width. */
+.journal-page {
+  --journal-width: min(680px, 100vw - 32px);
+}
+
+@media (min-width: 900px) {
+  .journal-page {
+    --journal-width: calc(100vw - 176px);
+  }
+
+  .journal-inner {
+    max-width: none;
+    padding-inline: 88px;
+  }
+}
+
 .journal-page h1,
 .journal-page h2,
 .journal-page h3,
@@ -2927,9 +2945,9 @@ button.record-nudge::after {
 }
 
 @media (min-width: 601px) {
-  /* On wider screens the toolbar is the editor's width (at most 680px), not the screen's. */
+  /* On wider screens the toolbar is the editor's width (the journal's), not the screen's. */
   button.record-nudge::after {
-    right: calc(min(680px, 100vw - 32px) / 8 - 12px);
+    right: calc(var(--journal-width) / 8 - 12px);
   }
 }
 
