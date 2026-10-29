@@ -1,0 +1,3 @@
+
+# Edge function secrets for local dev (the Notion key); hosted ones are set with `supabase secrets set`.
+supabase/functions/.env

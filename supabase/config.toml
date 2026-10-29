@@ -219,7 +219,9 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = false
+# Must stay true: false here turns off email sign-in altogether ("Email logins are disabled"). New
+# accounts are still refused by `enable_signup = false` under [auth]; the owner makes them by hand.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -442,3 +444,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/word-options/deno.json"
 entrypoint = "./functions/word-options/index.ts"
+
+[functions.feedback]
+enabled = true
+# Checked in the function itself (auth.getUser), which works with the project's signing keys.
+verify_jwt = false
+import_map = "./functions/feedback/deno.json"
+entrypoint = "./functions/feedback/index.ts"
