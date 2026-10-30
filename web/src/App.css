@@ -2778,8 +2778,13 @@ ruby.fix {
 }
 
 .fix-new.picked {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--picked);
+  color: var(--picked-ink);
+}
+
+:root[data-palette='colorblind'] .fix-new.picked {
+  outline: 1.5px dashed var(--picked-ink);
+  outline-offset: -1.5px;
 }
 
 /* The learner's words keep their colour (--writing); English is crossed out, other fixes underlined, in red. */
