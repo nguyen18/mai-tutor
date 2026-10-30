@@ -237,7 +237,6 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
           {entry.audio && !confirming && <AudioNotePlayer audio={entry.audio} bare />}
           {confirming ? (
             <span className="journal-confirm">
-              Delete?{' '}
               <button type="button" className="chip danger" onClick={onDelete}>
                 Delete
               </button>{' '}
