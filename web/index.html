@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // iPhones and iPads zoom in on a text box with text under 16px (the journal's is 15px on a phone);
+      // maximum-scale stops that there, and pinch-zoom still works on them. Not set elsewhere: on Android
+      // it would block pinch-zoom.
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        const viewport = document.querySelector('meta[name="viewport"]')
+        viewport.content += ', maximum-scale=1'
+      }
+    </script>
     <title>Mai</title>
     <!-- Space Grotesk, the app's font, and Playpen Sans for the journal pages (both have Vietnamese). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
