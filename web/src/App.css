@@ -9,6 +9,17 @@
   font-size: 1.6rem;
 }
 
+/* A title with its ⓘ beside it (Cheatsheet). */
+.page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title-row h1 {
+  margin-bottom: 0;
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.9rem;
@@ -2013,13 +2024,13 @@ button.icon-button.new-entry-fab {
   }
 }
 
-/* ⓘ next to the Journal title; its box holds the intro. */
-.journal-info-wrap {
+/* ⓘ next to a page title (Journal, Cheatsheet); its box holds the page's intro. */
+.page-info-wrap {
   position: relative;
   margin-right: auto;
 }
 
-button.tip-trigger.journal-info {
+button.tip-trigger.page-info {
   display: grid;
   place-items: center;
   position: relative;
@@ -2037,22 +2048,22 @@ button.tip-trigger.journal-info {
 }
 
 /* Small to look at, but a finger-sized area to tap. */
-button.tip-trigger.journal-info::before {
+button.tip-trigger.page-info::before {
   content: '';
   position: absolute;
   inset: -12px;
 }
 
-button.tip-trigger.journal-info[aria-expanded='true'] {
+button.tip-trigger.page-info[aria-expanded='true'] {
   color: var(--ink);
 }
 
-.journal-intro {
+.page-intro {
   font-size: 0.9rem;
   color: var(--text);
 }
 
-.tip-box .journal-intro p + p {
+.tip-box .page-intro p + p {
   margin-top: 8px;
 }
 

@@ -44,8 +44,20 @@ export function Cheatsheet() {
   return (
     <main className="app">
       <header className="header">
-        <h1>Cheatsheet</h1>
-        <p className="muted">Handy word lists to keep nearby while you learn.</p>
+        <div className="page-title-row">
+          <h1>Cheatsheet</h1>
+          {/* The description behind an ⓘ, as on the Journal (owner's request 2026-10-30). */}
+          <Popover
+            title="About the cheatsheet"
+            trigger="i"
+            triggerClassName="page-info"
+            triggerLabel="About the cheatsheet"
+            align="start"
+            wrapClassName="page-info-wrap"
+          >
+            <p className="page-intro">Handy word lists to keep nearby while you learn.</p>
+          </Popover>
+        </div>
         <p className="muted">
           Translating to <strong>{target.label}</strong> · <a href={ROUTE_HREF.settings}>Change language</a>
         </p>
