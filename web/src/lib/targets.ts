@@ -26,9 +26,9 @@ export type TargetLanguage = {
 }
 
 const VI = { code: 'vi', language: 'Vietnamese', pronouns: true, frames: true, regionalExample: 'Northern “lợn” → Southern “heo”' }
-// Spanish: no pronoun table or frames in which-dialect yet. Countries with the most region-tagged words,
-// plus Latin America as a whole (any of its countries' words).
-const ES = { code: 'es', language: 'Spanish', regionalExample: 'Spain “coche” → Mexico “carro”' }
+// Spanish: sentence frames (since which-dialect-es 0.2.3), no pronoun table yet. Countries with the most
+// region-tagged words, plus Latin America as a whole (any of its countries' words).
+const ES = { code: 'es', language: 'Spanish', frames: true, regionalExample: 'Spain “coche” → Mexico “carro”' }
 
 export const TARGET_LANGUAGES: TargetLanguage[] = [
   { ...VI, id: 'vi-Southern', region: 'Southern', dialect: 'Southern', label: 'Southern Vietnamese' },
