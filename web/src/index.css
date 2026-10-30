@@ -13,6 +13,8 @@
   /* The graph paper behind every page: its lines, and the size of a square. */
   --grid: #e7e6f3;
   --cell: 22px;
+  /* The grid on a journal entry's page (the background's in light; a touch brighter in dark). */
+  --sheet-grid: var(--grid);
   --danger: #c0364a;
   /* What the learner writes on a journal page (text, captions): the accent blue; white in dark mode. */
   --writing: var(--accent);
@@ -59,7 +61,8 @@
   --on-accent: #14152b;
   --blush: #4d2c3d;
   --translation: #ff8f85;
-  --grid: #303362;
+  --grid: #222448;
+  --sheet-grid: #303362;
   --danger: #ff7389;
   --writing: var(--text);
   --tape: #f7dde2;

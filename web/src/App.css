@@ -2191,8 +2191,8 @@ button.tip-trigger.page-info[aria-expanded='true'] {
   border: none;
   background-color: transparent;
   background-image:
-    linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--grid) calc(var(--line) - 1px)),
-    linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--grid) calc(var(--line) - 1px));
+    linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px)),
+    linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px));
   background-size: var(--line) var(--line);
   background-position: 0 14px;
 }
@@ -2666,8 +2666,8 @@ button.sticker-way {
 .entry-paper {
   margin-top: 14px;
   background-image:
-    linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--grid) calc(var(--line) - 1px)),
-    linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--grid) calc(var(--line) - 1px));
+    linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px)),
+    linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px));
   background-size: var(--line) var(--line);
   background-position: 0 14px;
 }
