@@ -6,6 +6,12 @@ export const TARGETS: Record<string, { code: string; region?: string }> = {
   'vi-Southern': { code: 'vi', region: 'Southern' },
   'vi-Central': { code: 'vi', region: 'Central' },
   'vi-Northern': { code: 'vi', region: 'Northern' },
+  'es-Spain': { code: 'es', region: 'Spain' },
+  'es-Mexico': { code: 'es', region: 'Mexico' },
+  'es-Argentina': { code: 'es', region: 'Argentina' },
+  'es-Colombia': { code: 'es', region: 'Colombia' },
+  // A region group: any Latin American country's words.
+  'es-Latin-America': { code: 'es', region: 'Latin America' },
 }
 
 // which-dialect's data in Storage (see ./data.ts).

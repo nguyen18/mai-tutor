@@ -23,14 +23,17 @@ const MAX_LENGTH = 5000
 // The opt-in checks the journal's setting can turn on; others stay off (a journal has no listener).
 const OPTIONAL_CHECKS = ['dialect', 'pronoun-consistency'] as const
 
-// Kept between requests while the function stays warm, so data files already loaded are reused.
-const reviewer = wd.createReviewer({ baseUrl: dataUrl })
-const checker = wd.createChecker({ baseUrl: dataUrl })
+// Kept between requests while the function stays warm, so data files already loaded are reused. The
+// reviewer, the checker and the word descriptions share one dictionary per language, so each data file is
+// parsed once per check: separate ones parsed everything twice, and a Spanish entry ran out of CPU
+// (2026-10-29).
 const dictionaries = new Map<string, wd.Dictionary>()
 const dictionary = (lang: string) => {
   if (!dictionaries.has(lang)) dictionaries.set(lang, wd.createDictionary({ lang, baseUrl: dataUrl(lang) }))
   return dictionaries.get(lang)!
 }
+const reviewer = wd.createReviewer({ dictionary })
+const checker = wd.createChecker({ dictionary })
 
 const describe = (lang: string, text: string, allRegions: number) =>
   describeWord(dictionary(lang), wd.posName, text, allRegions)

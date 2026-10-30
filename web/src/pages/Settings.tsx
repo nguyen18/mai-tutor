@@ -25,8 +25,8 @@ export function Settings() {
           <h2>Language you're learning</h2>
         </div>
         <p className="muted">
-          Words across the site are translated into this language. Each dialect has its own everyday words and
-          pronouns.
+          Words across the site are translated into this language. Each dialect or country has its own everyday
+          words.
         </p>
         {[...BY_LANGUAGE].map(([language, dialects]) => (
           <fieldset key={language} className="language-group">
@@ -64,10 +64,10 @@ export function Settings() {
         <label className="setting-toggle">
           <input type="checkbox" checked={extraChecks} onChange={(e) => setExtraChecks(e.target.checked)} />
           <span>
-            <strong>Regional words and pronouns</strong>
+            <strong>{target.pronouns ? 'Regional words and pronouns' : 'Regional words'}</strong>
             <span className="muted">
-              Words from another dialect (e.g. Northern “lợn” → Southern “heo”), and keeping one word for “I” (“tôi”
-              earlier, “tui” later).
+              Words from another {target.code === 'vi' ? 'dialect' : 'region'} (e.g. {target.regionalExample})
+              {target.pronouns ? <>, and keeping one word for “I” (“tôi” earlier, “tui” later)</> : null}.
             </span>
           </span>
         </label>

@@ -12,7 +12,7 @@
 // word ~20 s, because files nobody had asked for recently take ~1 s each and a word needs dozens of them in
 // a row. From Storage, next to the functions, every file is fast.
 //
-// The data comes from the published npm packages (which-dialect-en / -vi, the versions below) and goes
+// The data comes from the published npm packages (which-dialect-en / -vi / -es, the versions below) and goes
 // to the public bucket `which-dialect` as <lang>@<version>/<path>. Already-uploaded files are skipped
 // (upsert: false), so an interrupted run can just be started again. Run it again when the data versions
 // change (DATA_SETS here and DATA_VERSIONS in supabase/functions/_shared/data.ts).
@@ -27,8 +27,9 @@ import { fileURLToPath } from 'node:url'
 // match), each in a folder named <lang>@<version>. (Folders from before 2026-10-01's bump to which-dialect
 // 0.5.0, named after the package version: 0.1.1, 0.2.0, 0.3.0, 0.4.0, are unused and can be deleted.)
 const DATA_SETS: { lang: string; version: string }[] = [
-  { lang: 'en', version: '0.1.2' },
-  { lang: 'vi', version: '0.1.7' },
+  { lang: 'en', version: '0.2.1' },
+  { lang: 'vi', version: '0.2.0' },
+  { lang: 'es', version: '0.2.2' },
 ]
 const BUCKET = 'which-dialect'
 // Uploaded into a data set's folder once all its files are there, so --if-missing can skip the set without

@@ -65,7 +65,8 @@ export type SpellingCheck = {
 }
 
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
-  const checks = extraChecks ? { dialect: true, 'pronoun-consistency': true } : {}
+  // The pronoun check needs the language's pronoun table (TargetLanguage.pronouns).
+  const checks = extraChecks ? { dialect: true, ...(target.pronouns ? { 'pronoun-consistency': true } : {}) } : {}
   const review = await callFunction<Review>(
     'check-spelling',
     { target: target.id, text: input, checks },

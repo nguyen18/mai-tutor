@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url'
 import * as wd from 'which-dialect'
 import { createDictionary, createTranslator, PRONOUN_PERSONS, type LoadJson, type PronounChoice, type Translator } from 'which-dialect'
 import { makeEntry } from '../../supabase/functions/_shared/entries.ts'
-import { TARGET_LANGUAGES, type TargetLanguage } from '../src/lib/languages.ts'
+import { TARGET_LANGUAGES, type TargetLanguage } from '../src/lib/targets.ts'
 import { TOP_100_WORDS } from '../src/lib/topWords.ts'
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..')

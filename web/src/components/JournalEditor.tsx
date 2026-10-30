@@ -247,7 +247,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
               e.target.value = ''
             }}
           />
-          {(['stickers', 'frames', 'audio'] as const).map((p) => (
+          {(['stickers', ...(target.frames ? (['frames'] as const) : []), 'audio'] as const).map((p) => (
             <button key={p} type="button" aria-pressed={panel === p} onClick={() => toggle(p)}>
               <span aria-hidden="true">{PANEL_ICONS[p]}</span>
               {PANEL_SHORT[p]}
