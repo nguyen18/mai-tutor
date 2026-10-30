@@ -2119,7 +2119,8 @@ button.tip-trigger.journal-info[aria-expanded='true'] {
 
 .entry-date-row .language-tag {
   margin-right: 10px;
-  border-radius: 0;
+  /* Rounded like Mai's corrections (.fix-new; owner's request 2026-10-30). */
+  border-radius: 3px;
 }
 
 .entry-week {
