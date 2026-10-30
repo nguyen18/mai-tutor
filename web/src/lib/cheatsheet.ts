@@ -62,8 +62,6 @@ export type CheatsheetList = {
   description?: string
   // Language of the translations, e.g. for the lang attribute and the legend.
   translationLang?: { code: string; label: string }
-  // Credit line for generated data (required by its CC BY-SA license when shown).
-  attribution?: string
   // "Who are you talking to?" table for the pronoun words (I, me, my, you, your, we, she, her, him, they,
   // them, and contractions with "I"), from which-dialect via the generated data.
   pronounTable?: PronounTable
@@ -131,7 +129,6 @@ export function myWordsList(target: TargetLanguage, bank: WordBank, entries: Che
     id: listId(target),
     title: '100 most common words you use',
     translationLang: { code: target.code, label: target.label },
-    attribution: 'Meanings and translations from Wiktionary (CC BY-SA 4.0), via which-dialect.',
     entries,
     ...(bank.pronounTable ? { pronounTable: bank.pronounTable } : {}),
   }

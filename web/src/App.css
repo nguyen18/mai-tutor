@@ -807,11 +807,6 @@ button.tip-trigger.word-trigger {
   color: var(--muted);
 }
 
-.attribution {
-  margin-top: 14px;
-  font-size: 0.75rem;
-}
-
 /* Long meaning lists ("going" has 25) scroll inside the box on larger screens too. */
 @media (min-width: 601px) {
   .tip-box {
@@ -2057,6 +2052,10 @@ button.tip-trigger.page-info[aria-expanded='true'] {
 .page-intro {
   font-size: 0.9rem;
   color: var(--text);
+}
+
+.tip-box .page-intro .muted {
+  font-size: 0.8rem;
 }
 
 .tip-box .page-intro p + p {
