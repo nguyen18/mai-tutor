@@ -2049,11 +2049,6 @@ button.tip-trigger.journal-info[aria-expanded='true'] {
   margin-top: 8px;
 }
 
-.journal-empty {
-  margin-top: 20px;
-  color: var(--muted);
-}
-
 .journal-page .journal-new {
   display: flex;
   justify-content: center;

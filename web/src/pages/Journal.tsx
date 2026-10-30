@@ -172,14 +172,7 @@ export function Journal() {
 
         {entries === null ? (
           <p className="muted">Loading your journal…</p>
-        ) : entries.length === 0 ? (
-          !editing && (
-            <p className="journal-empty">
-              No entries yet. Write one, or record an audio note and type out what you said: typed words are what Mai
-              can check.
-            </p>
-          )
-        ) : (
+        ) : entries.length === 0 ? null : (
           <ol className="journal-list">
             {entries
               .filter((e) => e.id !== editing?.entry?.id)
