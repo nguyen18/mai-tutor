@@ -221,6 +221,7 @@ type CardProps = {
 
 function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onEdit, onDelete }: CardProps) {
   const [confirming, setConfirming] = useState(false)
+  const [asking, setAsking] = useState(false)
   const lang = targetById(entry.targetId)
   // A check from before the entry was last edited (or in an older format) doesn't count.
   const check = currentCheck(entry)
@@ -235,21 +236,39 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
       <div className={check ? 'entry-paper annotated' : 'entry-paper'}>
         {/* The audio note's bar, then edit and delete, along the bottom of the page under the text. */}
         <div className={entry.audio ? 'entry-tools with-audio' : 'entry-tools'}>
-          {entry.audio && <AudioNotePlayer audio={entry.audio} bare />}
-          <button type="button" className="icon-button small" aria-label="Edit entry" title="Edit" onClick={onEdit}>
-            ✎
-          </button>
-          <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
-            🗑
-          </button>
+          {entry.audio && !confirming && <AudioNotePlayer audio={entry.audio} bare />}
+          {confirming ? (
+            <span className="journal-confirm">
+              <button type="button" className="chip danger" onClick={() => setAsking(true)}>
+                Delete
+              </button>{' '}
+              <button type="button" className="chip" onClick={() => setConfirming(false)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <>
+              <button type="button" className="icon-button small" aria-label="Edit entry" title="Edit" onClick={onEdit}>
+                ✎
+              </button>
+              <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
+                🗑
+              </button>
+            </>
+          )}
         </div>
-        {confirming && (
+        {/* Three clicks to delete (owner's request 2026-10-30): 🗑, the red Delete, then Yes here. */}
+        {asking && (
           <ConfirmDialog
-            title="Delete this entry?"
-            message="Are you sure? It can't be undone."
-            confirmLabel="Delete"
+            title="Are you sure?"
+            message="This entry will be deleted. It can't be undone."
+            confirmLabel="Yes"
+            cancelLabel="No"
             onConfirm={onDelete}
-            onCancel={() => setConfirming(false)}
+            onCancel={() => {
+              setAsking(false)
+              setConfirming(false)
+            }}
           />
         )}
         {(entry.text || entry.items.length > 0) && (
