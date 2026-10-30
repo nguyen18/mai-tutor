@@ -1982,6 +1982,18 @@ button.icon-button:active {
   background: var(--accent-soft);
 }
 
+/* New entry: a square ＋ floating in the bottom-right corner, matching the ☰ menu in the bottom-left. */
+button.icon-button.new-entry-fab {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 25;
+  width: 52px;
+  height: 52px;
+  font-size: 1.6rem;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
 .journal-intro {
   margin: 8px 0 0;
   font-size: 0.9rem;
