@@ -615,6 +615,13 @@ button.tip-option:focus-visible {
   color: var(--muted);
 }
 
+/* Dark mode: a word box's definitions in the pale ink, like the rest of its text (owner's feedback); the
+   muted lavender was too dim on the dark box. */
+:root[data-theme='dark'] .tip-box .tip-meaning,
+:root[data-theme='dark'] .tip-option-usage {
+  color: var(--text);
+}
+
 .default-tag {
   grid-column: 3;
   justify-self: start;
