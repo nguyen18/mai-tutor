@@ -59,12 +59,12 @@
   --on-accent: #14152b;
   --blush: #4d2c3d;
   --translation: #ff8f85;
-  --grid: #222448;
+  --grid: #303362;
   --danger: #ff7389;
   --writing: var(--text);
   --tape: #f7dde2;
   --paper: #191a36;
-  --rule: #2b2d56;
+  --rule: #33365f;
   --photo-frame: #e9e8f5;
   --shade: 0 0 0;
   /* The correction highlights keep their bright light-mode colours (owner's feedback), so what's written
