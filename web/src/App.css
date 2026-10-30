@@ -2450,11 +2450,16 @@ button.make-sticker {
     grid-template-columns: auto 1fr;
   }
 
-  /* On a phone the language tag moves under the date, so the date has the row. */
+  /* On a phone the language tag moves under the date, so the date has the row; the "Date" label spans
+     both rows, so its divider runs the full height and the tag stays right of it. */
+  .entry-date-label {
+    grid-row: span 2;
+  }
+
   .entry-date-row .language-tag {
-    grid-column: 1 / -1;
+    grid-column: 2;
     justify-self: start;
-    margin: 0 0 6px 12px;
+    margin: 0 0 8px 12px;
   }
 
   .entry-week {
