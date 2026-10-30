@@ -14,6 +14,8 @@
   --grid: #e7e6f3;
   --cell: 22px;
   --danger: #c0364a;
+  /* What the learner writes on a journal page (text, captions): the accent blue; white in dark mode. */
+  --writing: var(--accent);
   /* A journal page's paper and its ruled lines. */
   --paper: #fffefb;
   --rule: #e6e6f4;
@@ -54,6 +56,7 @@
   --translation: #ff8f85;
   --grid: #222448;
   --danger: #ff7389;
+  --writing: #ffffff;
   --paper: #191a36;
   --rule: #2b2d56;
   --photo-frame: #e9e8f5;

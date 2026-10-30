@@ -1304,7 +1304,7 @@ a.discover-link:hover {
   /* The same size as Mai's corrections over the words (owner's requests 2026-10-30). */
   font-size: 0.9rem;
   line-height: var(--line);
-  color: var(--accent);
+  color: var(--writing);
   background: transparent;
   border: none;
   resize: none;
@@ -2522,7 +2522,7 @@ button.make-sticker {
   font-weight: 500;
   line-height: 1.25;
   text-align: center;
-  color: var(--accent);
+  color: var(--writing);
   pointer-events: none;
 }
 
@@ -2548,7 +2548,7 @@ button.make-sticker {
   font: inherit;
   font-size: 16px;
   text-align: center;
-  color: var(--accent);
+  color: var(--writing);
   background: var(--surface);
   border: 1.5px solid var(--accent);
   border-radius: 0;
@@ -2765,9 +2765,9 @@ ruby.fix {
   color: var(--accent);
 }
 
-/* The learner's words keep their blue; English is crossed out, other fixes underlined, in red. */
+/* The learner's words keep their colour (--writing); English is crossed out, other fixes underlined, in red. */
 .fix .fix-original {
-  color: var(--accent);
+  color: var(--writing);
   text-decoration: underline dotted var(--translation);
   text-underline-offset: 4px;
 }
