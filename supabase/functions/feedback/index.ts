@@ -31,8 +31,10 @@ const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 
 const ISSUES: Record<string, string> = { general: 'General', word: 'Word/definition' }
 // The ticket page's icon for each form (owner's request 2026-10-30).
 const ICONS: Record<string, string> = { general: '⭐', word: '🌱' }
-// Tickets a user can send in an hour.
-const HOURLY_LIMIT = 5
+// Tickets a user can send in an hour: plenty for reporting many words in a row (5 was too few, owner's
+// feedback 2026-10-30), still a stop for a runaway script. Only the owner can sign up for now; lower it
+// when others can.
+const HOURLY_LIMIT = 100
 
 const NOTION_API = 'https://api.notion.com/v1'
 const NOTION_VERSION = '2025-09-03'
