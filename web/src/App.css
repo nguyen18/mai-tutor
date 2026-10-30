@@ -1283,8 +1283,8 @@ a.discover-link:hover {
   margin: 0;
   padding: 14px 18px 24px;
   font: inherit;
-  /* The same size as Mai's corrections over the words (owner's request 2026-10-30). */
-  font-size: 0.8rem;
+  /* The same size as Mai's corrections over the words (owner's requests 2026-10-30). */
+  font-size: 0.9rem;
   line-height: var(--line);
   color: var(--accent);
   background: transparent;
