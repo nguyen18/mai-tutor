@@ -3269,7 +3269,8 @@ button.feedback-attach {
   z-index: 25;
   width: min(260px, calc(100vw - 32px));
   padding: 10px 36px 10px 12px;
-  background: var(--surface);
+  /* Blush pink, the palette's pink (owner's feedback). */
+  background: var(--blush);
   border: 1.5px solid var(--text);
   border-radius: 12px;
   box-shadow: 3px 3px 0 var(--text);
