@@ -16,7 +16,7 @@ import { makeEntry, type Entry } from '../_shared/entries.ts'
 
 // Bump with the which-dialect import in deno.json, or the data versions (_shared/data.ts): rows from
 // another version aren't reused.
-const VERSION = '0.5.9+en0.2.1+vi0.2.0+es0.2.1'
+const VERSION = '0.5.10+en0.2.1+vi0.2.0+es0.2.2'
 const MAX_WORDS = 25
 const MAX_WORD_LENGTH = 60
 // Words translated at once: each loads several data files, so a few in parallel is faster without
