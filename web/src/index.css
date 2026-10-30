@@ -14,7 +14,23 @@
   --grid: #e7e6f3;
   --cell: 22px;
   --danger: #c0364a;
-  /* Light only for now, even when the OS is in dark mode. */
+  /* What the learner writes on a journal page (text, captions): the accent blue; white in dark mode. */
+  --writing: var(--accent);
+  /* A journal page's paper and its ruled lines. */
+  --paper: #fffefb;
+  --rule: #e6e6f4;
+  /* The strip of tape on a photo. */
+  --tape: var(--blush);
+  /* A photo's white border. */
+  --photo-frame: #ffffff;
+  /* The ink's colour as RGB channels, for see-through shadows and backdrops: rgb(var(--shade) / 0.3). */
+  --shade: 35 37 110;
+  /* Mai's corrections are tinted by kind of change (journal and its key). */
+  --kind-spelling: #fde3cf;
+  --kind-foreign: #fff0a6;
+  --kind-frame: #d9f2df;
+  --kind-dialect: #dbe8ff;
+  --kind-pronoun: #ece0f8;
   color-scheme: light;
   /* Space Grotesk (loaded in index.html), owner's pick 2026-10-30: geometric grotesque sans. */
   --display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -24,6 +40,35 @@
   line-height: 1.5;
   color: var(--text);
   /* No background here: body's graph paper then covers the whole window, below short pages too. */
+}
+
+/* Dark mode (owner's request 2026-10-30): <html data-theme="dark">, set from Settings' Appearance or the
+   device's setting (lib/theme.ts, and index.html before the first paint). The same indigo ink and blush,
+   turned around: deep indigo paper, pale lavender ink. */
+:root[data-theme='dark'] {
+  --bg: #14152b;
+  --surface: #1d1f3d;
+  --text: #e4e4fb;
+  --muted: #9d9fd2;
+  --border: #36386c;
+  --accent: #a7a9ff;
+  --accent-soft: #2b2d5e;
+  --on-accent: #14152b;
+  --blush: #4d2c3d;
+  --translation: #ff8f85;
+  --grid: #222448;
+  --danger: #ff7389;
+  --writing: var(--text);
+  --tape: #f7dde2;
+  --paper: #191a36;
+  --rule: #2b2d56;
+  --photo-frame: #e9e8f5;
+  --shade: 0 0 0;
+  /* The correction highlights keep their bright light-mode colours (owner's feedback), so what's written
+     on them uses light mode's ink and red (App.css, after the highlights). */
+  --kind-ink: #23256e;
+  --kind-fix: #c9221d;
+  color-scheme: dark;
 }
 
 * {
