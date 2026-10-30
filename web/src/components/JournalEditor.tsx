@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { newId, nowLocal, objectUrl, useStickers, type JournalEntry, type SheetItem, type Sticker } from '../lib/journal'
 import { firstSlot, type Frame } from '../lib/frames'
 import { shrinkImage } from '../lib/images'
@@ -225,7 +225,8 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
         </section>
       )}
 
-      <div className="editor-toolbar-area">
+      {/* --tools: how many buttons the toolbar has (no Frames for languages without sentence frames). */}
+      <div className="editor-toolbar-area" style={{ '--tools': target.frames ? 4 : 3 } as CSSProperties}>
         {/* A nudge to read the entry aloud: once there's writing and no recording yet. */}
         {text.trim() && !audio && panel !== 'audio' && (
           <button type="button" className="record-nudge" onClick={() => setPanel('audio')}>

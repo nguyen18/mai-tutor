@@ -2304,7 +2304,7 @@ button.make-sticker {
 
 .editor-toolbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(var(--tools, 4), 1fr);
   border-top: 1.5px solid var(--ink);
   background: var(--surface);
 }
@@ -2930,7 +2930,7 @@ div.audio-bar {
 }
 
 /* A speech bubble over the toolbar's Audio button, reminding the learner to record themselves reading the
-   entry (owner's request); its tail points down at the button (the last of four). */
+   entry (owner's request); its tail points down at the button (the last of --tools). */
 .editor-toolbar-area {
   position: relative;
 }
@@ -2955,12 +2955,12 @@ button.record-nudge {
   box-shadow: 2px 2px 0 var(--text);
 }
 
-/* The tail: a small diamond's lower half, over the Audio button's middle (an eighth of the bar from the right). */
+/* The tail: a small diamond's lower half, over the Audio button's middle (half a button from the right). */
 button.record-nudge::after {
   content: '';
   position: absolute;
   bottom: -7px;
-  right: calc(12.5vw - 6px - 6px);
+  right: calc(50vw / var(--tools, 4) - 6px - 6px);
   width: 12px;
   height: 12px;
   background: var(--blush);
@@ -2972,7 +2972,7 @@ button.record-nudge::after {
 @media (min-width: 601px) {
   /* On wider screens the toolbar is the editor's width (the page's), not the screen's. */
   button.record-nudge::after {
-    right: calc(var(--page-width) / 8 - 12px);
+    right: calc(var(--page-width) / var(--tools, 4) / 2 - 12px);
   }
 }
 
