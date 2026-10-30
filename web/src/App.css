@@ -1928,12 +1928,11 @@ button.tip-trigger.word-mark.picked {
 
 /* =========================================================================================================
    Journal, zine style (owner's reference: Daplit, 2026-10-01): graph paper, thin ink lines and square
-   corners, Space Grotesk headings framed by slashes, tape on photos. Only the journal uses this look.
+   corners, Space Grotesk headings framed by slashes, tape on photos. The graph paper (--grid, --cell on
+   :root) is behind every page since 2026-10-30; the rest is the journal's own.
    ========================================================================================================= */
 .journal-page {
   --ink: var(--text);
-  --grid: #e7e6f3;
-  --cell: 22px;
   min-height: 100dvh;
   background-color: var(--bg);
   background-image:

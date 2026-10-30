@@ -10,6 +10,9 @@
   --on-accent: #ffffff;
   --blush: #f7dde2;
   --translation: #c9221d;
+  /* The graph paper behind every page: its lines, and the size of a square. */
+  --grid: #e7e6f3;
+  --cell: 22px;
   --danger: #c0364a;
   /* Light only for now, even when the OS is in dark mode. */
   color-scheme: light;
@@ -20,7 +23,7 @@
   font-family: var(--display);
   line-height: 1.5;
   color: var(--text);
-  background: var(--bg);
+  /* No background here: body's graph paper then covers the whole window, below short pages too. */
 }
 
 * {
@@ -35,7 +38,12 @@ textarea {
   font-family: inherit;
 }
 
+/* Graph paper behind every page, like the journal's (owner's request 2026-10-30). */
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
 }
