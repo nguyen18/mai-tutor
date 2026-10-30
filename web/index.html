@@ -15,11 +15,12 @@
     </script>
     <script>
       // Light or dark before the first paint, so a dark page never flashes white (lib/theme.ts keeps it
-      // up to date after that): the choice from Settings, else the device's setting.
+      // up to date after that): the choice from Settings, else the device's setting; and the colorblind-
+      // friendly colours when they're on ("dark-colorblind" was their theme before they became a switch).
       try {
         const choice = localStorage.getItem('mai-tutor:theme')
-        const colorblind = choice === 'dark-colorblind'
-        const dark = choice === 'dark' || colorblind || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        const colorblind = choice === 'dark-colorblind' || localStorage.getItem('mai-tutor:colorblind') === '1'
+        const dark = choice === 'dark' || choice === 'dark-colorblind' || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
         if (colorblind) document.documentElement.dataset.palette = 'colorblind'
       } catch {

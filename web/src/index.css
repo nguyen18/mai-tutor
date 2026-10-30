@@ -74,6 +74,23 @@
   color-scheme: dark;
 }
 
+/* Colorblind-friendly colours (owner's requests 2026-10-30), a switch in Settings' Appearance that goes with
+   light and dark: Mai's colour codes from the Okabe-Ito palette, as below for dark, here tuned for light
+   paper. Red becomes a dark orange (vermilion, darkened to read on white); the highlights are paler; Mai's
+   words on them are the ink. */
+:root[data-palette='colorblind'] {
+  --translation: #b45309;
+  --kind-spelling: #b9e0f7;
+  --kind-foreign: #f4ec8a;
+  --kind-frame: #dfa3c8;
+  --kind-dialect: #eeb15a;
+  --kind-pronoun: #7fb0e3;
+  --kind-ink: #23256e;
+  --kind-fix: #23256e;
+  --picked: #009e73;
+  --picked-ink: #ffffff;
+}
+
 /* Colorblind-friendly dark mode (owner's request 2026-10-30): dark, with Mai's colour codes from the
    Okabe-Ito palette, which stays distinct with red-green (and most other) colorblindness. Red, which reads
    as brown or grey to many, becomes orange (translations, Mai's crossed-out and underlined words); the five
