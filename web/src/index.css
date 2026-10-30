@@ -13,8 +13,8 @@
   --danger: #c0364a;
   /* Light only for now, even when the OS is in dark mode. */
   color-scheme: light;
-  /* Playpen Sans (loaded in index.html), owner's pick 2026-10-07: rounded marker handwriting. */
-  --display: 'Playpen Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Gelasio (loaded in index.html), owner's pick 2026-10-30: Georgia-metric serif. */
+  --display: 'Gelasio', Georgia, 'Times New Roman', serif;
   font-family: var(--display);
   line-height: 1.5;
   color: var(--text);
