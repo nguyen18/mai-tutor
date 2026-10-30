@@ -1283,7 +1283,8 @@ a.discover-link:hover {
   margin: 0;
   padding: 14px 18px 24px;
   font: inherit;
-  font-size: 1.05rem;
+  /* The same size as Mai's corrections over the words (owner's request 2026-10-30). */
+  font-size: 0.8rem;
   line-height: var(--line);
   color: var(--accent);
   background: transparent;
@@ -2831,16 +2832,13 @@ ruby.fix {
   --line: 2.75rem;
 }
 
-.entry-paper .journal-text.annotated {
-  font-size: 0.98rem;
-}
 
 .journal-text.annotated .fix-new {
   /* Lifted a little off the word it replaces, so the two don't crowd each other (owner's request
      2026-10-22). The ruled lines are tall enough that it stays inside its line. */
   position: relative;
   top: -5px;
-  font-size: 0.8em;
+  font-size: 1em;
 }
 
 /* An entry's audio note: just the player bar, in the bottom row beside ✎ and 🗑. */
@@ -2965,6 +2963,8 @@ div.audio-bar {
 
   .editor-page .journal-sheet.editing .journal-text {
     min-height: 100%;
+    /* At least 16px, so iPhones don't zoom in when the page is focused. */
+    font-size: 16px;
   }
 }
 
