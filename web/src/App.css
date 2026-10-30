@@ -1998,9 +1998,10 @@ button.icon-button.new-entry-fab {
   top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
   z-index: 25;
-  width: 52px;
-  height: 52px;
-  font-size: 1.6rem;
+  /* A little smaller than the ☰ menu's 52px (owner's request 2026-10-30). */
+  width: 46px;
+  height: 46px;
+  font-size: 1.45rem;
 }
 
 @media (max-width: 600px) {
