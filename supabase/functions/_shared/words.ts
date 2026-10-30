@@ -5,7 +5,7 @@
 // which-dialect is passed in (as the dictionary and posName), like _shared/entries.ts, so this file doesn't
 // pin its own copy of the package.
 
-import type * as WhichDialect from 'npm:which-dialect@0.5.5'
+import type * as WhichDialect from 'npm:which-dialect@0.5.9'
 
 export type OptionMeaning = { pos: string; posName: string; gloss: string; regions?: string[]; labels?: string[] }
 export type WordOption = { text: string; meanings: OptionMeaning[] }

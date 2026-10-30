@@ -133,7 +133,7 @@ export function Journal() {
             <p></p> Stuck on a word? Write it in English and Mai fills
             it in: your words stay blue, Mai's notes are red.
           </p>
-          <HighlightKey extraChecks={extraChecks} />
+          <HighlightKey extraChecks={extraChecks} target={target} />
         </header>
 
         {error && <p className="error">{error}</p>}
@@ -775,9 +775,15 @@ function WordAlternativesBox({ word, shown, onPick, target, tag = 'your word', s
 
 
 // The page's highlighter key, under its description: what each tint in Mai's notes means. The regional
-// word and pronoun tints only appear when those checks are on (Settings).
-function HighlightKey({ extraChecks }: { extraChecks: boolean }) {
-  const kinds = ['spelling', 'foreign-word', 'frame', ...(extraChecks ? ['dialect', 'pronoun-consistency'] : [])]
+// word and pronoun tints only appear when those checks are on (Settings), and frame and pronoun tints only
+// for languages that have them.
+function HighlightKey({ extraChecks, target }: { extraChecks: boolean; target: TargetLanguage }) {
+  const kinds = [
+    'spelling',
+    'foreign-word',
+    ...(target.frames ? ['frame'] : []),
+    ...(extraChecks ? ['dialect', ...(target.pronouns ? ['pronoun-consistency'] : [])] : []),
+  ]
   return (
     <ul className="change-legend page-legend" aria-label="What Mai's highlights mean">
       {kinds.map((k) => (

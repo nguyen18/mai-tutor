@@ -5,7 +5,7 @@
 // which-dialect is passed in rather than imported: the build script runs in Node (web/node_modules) and
 // the function in Deno (npm: import), and this file sits where neither resolves the other's import.
 
-import type * as WhichDialect from 'npm:which-dialect@0.5.5'
+import type * as WhichDialect from 'npm:which-dialect@0.5.9'
 
 type WD = Pick<typeof WhichDialect, 'displayGloss' | 'posName'>
 type Translator = WhichDialect.Translator
