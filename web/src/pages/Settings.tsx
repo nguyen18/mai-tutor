@@ -1,6 +1,7 @@
 import { AccountCard } from '../components/AccountCard'
 import { useJournalExtraChecks } from '../lib/journal'
 import { TARGET_LANGUAGES, useTargetLanguage, type TargetLanguage } from '../lib/languages'
+import { useColorblind, useThemeChoice, type ThemeChoice } from '../lib/theme'
 
 // Dialects grouped under their language ("Vietnamese": Southern, Central, Northern), languages in
 // alphabetical order, so the language list stays easy to scan as more are added.
@@ -13,10 +14,18 @@ const BY_LANGUAGE = new Map(
   ].sort(([a], [b]) => a.localeCompare(b)),
 )
 
+const THEMES: [ThemeChoice, string][] = [
+  ['system', 'Device'],
+  ['light', 'Light'],
+  ['dark', 'Dark'],
+]
+
 export function Settings() {
   const [target, setTarget] = useTargetLanguage()
   const [extraChecks, setExtraChecks] = useJournalExtraChecks()
   const dialects = BY_LANGUAGE.get(target.language) ?? [target]
+  const [theme, setTheme] = useThemeChoice()
+  const [colorblind, setColorblind] = useColorblind()
 
   return (
     <main className="app">
@@ -25,6 +34,37 @@ export function Settings() {
       </header>
 
       <AccountCard />
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Appearance</h2>
+        </div>
+        <p className="muted">Light or dark. "Device" follows your phone's or computer's setting. Saved on this device only.</p>
+        <div className="theme-choice" role="radiogroup" aria-label="Appearance">
+          {THEMES.map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={theme === value}
+              className={theme === value ? 'chip selected' : 'chip'}
+              onClick={() => setTheme(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className="setting-toggle theme-colorblind">
+          <input type="checkbox" checked={colorblind} onChange={(e) => setColorblind(e.target.checked)} />
+          <span>
+            <strong>Colorblind-friendly colors</strong>
+            <span className="muted">
+              Mai's highlights and corrections in colors that stay apart with red-green colorblindness, in light and
+              dark.
+            </span>
+          </span>
+        </label>
+      </section>
 
       <section className="card">
         <div className="card-head">

@@ -13,8 +13,29 @@
   /* The graph paper behind every page: its lines, and the size of a square. */
   --grid: #e7e6f3;
   --cell: 22px;
+  /* The grid on a journal entry's page (the background's in light; a touch brighter in dark). */
+  --sheet-grid: var(--grid);
   --danger: #c0364a;
-  /* Light only for now, even when the OS is in dark mode. */
+  /* What the learner writes on a journal page (text, captions): the accent blue; white in dark mode. */
+  --writing: var(--accent);
+  /* A journal page's paper and its ruled lines. */
+  --paper: #fffefb;
+  --rule: #e6e6f4;
+  /* A word the learner starred, written over their own word on a journal page. */
+  --picked: var(--accent-soft);
+  --picked-ink: var(--accent);
+  /* The strip of tape on a photo. */
+  --tape: var(--blush);
+  /* A photo's white border. */
+  --photo-frame: #ffffff;
+  /* The ink's colour as RGB channels, for see-through shadows and backdrops: rgb(var(--shade) / 0.3). */
+  --shade: 35 37 110;
+  /* Mai's corrections are tinted by kind of change (journal and its key). */
+  --kind-spelling: #fde3cf;
+  --kind-foreign: #fff0a6;
+  --kind-frame: #d9f2df;
+  --kind-dialect: #dbe8ff;
+  --kind-pronoun: #ece0f8;
   color-scheme: light;
   /* Space Grotesk (loaded in index.html), owner's pick 2026-10-30: geometric grotesque sans. */
   --display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -24,6 +45,75 @@
   line-height: 1.5;
   color: var(--text);
   /* No background here: body's graph paper then covers the whole window, below short pages too. */
+}
+
+/* Dark mode (owner's request 2026-10-30): <html data-theme="dark">, set from Settings' Appearance or the
+   device's setting (lib/theme.ts, and index.html before the first paint). The same indigo ink and blush,
+   turned around: deep indigo paper, pale lavender ink. */
+:root[data-theme='dark'] {
+  --bg: #14152b;
+  --surface: #1d1f3d;
+  --text: #e4e4fb;
+  --muted: #9d9fd2;
+  --border: #36386c;
+  --accent: #a7a9ff;
+  --accent-soft: #2b2d5e;
+  --on-accent: #14152b;
+  --blush: #4d2c3d;
+  --translation: #ff8f85;
+  --grid: #222448;
+  --sheet-grid: #303362;
+  --danger: #ff7389;
+  --writing: var(--text);
+  --tape: #f7dde2;
+  --paper: #191a36;
+  --rule: #33365f;
+  --photo-frame: #e9e8f5;
+  --shade: 0 0 0;
+  /* The correction highlights keep their bright light-mode colours (owner's feedback), so what's written
+     on them uses light mode's ink and red (App.css, after the highlights). */
+  --kind-ink: #23256e;
+  --kind-fix: #c9221d;
+  color-scheme: dark;
+}
+
+/* Colorblind-friendly colours (owner's requests 2026-10-30), a switch in Settings' Appearance that goes with
+   light and dark: Mai's colour codes from the Okabe-Ito palette, as below for dark, here tuned for light
+   paper. Red becomes a dark orange (vermilion, darkened to read on white); the highlights are paler; Mai's
+   words on them are the ink. */
+:root[data-palette='colorblind'] {
+  --translation: #b45309;
+  --kind-spelling: #b9e0f7;
+  --kind-foreign: #f4ec8a;
+  --kind-frame: #dfa3c8;
+  --kind-dialect: #eeb15a;
+  --kind-pronoun: #7fb0e3;
+  --kind-ink: #23256e;
+  --kind-fix: #23256e;
+  --picked: #009e73;
+  --picked-ink: #ffffff;
+}
+
+/* Colorblind-friendly dark mode (owner's request 2026-10-30): dark, with Mai's colour codes from the
+   Okabe-Ito palette, which stays distinct with red-green (and most other) colorblindness. Red, which reads
+   as brown or grey to many, becomes orange (translations, Mai's crossed-out and underlined words); the five
+   correction highlights become sky blue, yellow, reddish purple, orange and a deeper blue, apart in
+   lightness too (checked through deuteranopia and protanopia simulations); and what's written on them is
+   dark ink rather than red. */
+:root[data-theme='dark'][data-palette='colorblind'] {
+  --translation: #e69f00;
+  --danger: #f0864a;
+  --kind-spelling: #9fd6f5;
+  --kind-foreign: #f3ec84;
+  --kind-frame: #d488b8;
+  --kind-dialect: #e9a23b;
+  --kind-pronoun: #6aa6e0;
+  --kind-fix: #1b1d52;
+  /* A word the learner starred, written over their own: Okabe-Ito's full bluish green with white text,
+     darker than the five pale highlights, so it stays apart by lightness (a pale bluish green read as the
+     yellow when simulated; white was tried too). */
+  --picked: #009e73;
+  --picked-ink: #ffffff;
 }
 
 * {
