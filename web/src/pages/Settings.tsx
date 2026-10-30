@@ -18,6 +18,7 @@ const THEMES: [ThemeChoice, string][] = [
   ['system', 'Device'],
   ['light', 'Light'],
   ['dark', 'Dark'],
+  ['dark-colorblind', 'Dark (colorblind-friendly)'],
 ]
 
 export function Settings() {
@@ -38,7 +39,10 @@ export function Settings() {
         <div className="card-head">
           <h2>Appearance</h2>
         </div>
-        <p className="muted">Light or dark. "Device" follows your phone's or computer's setting. Saved on this device only.</p>
+        <p className="muted">
+          Light or dark. "Device" follows your phone's or computer's setting. The colorblind-friendly dark mode
+          uses colors that stay apart with red-green colorblindness. Saved on this device only.
+        </p>
         <div className="theme-choice" role="radiogroup" aria-label="Appearance">
           {THEMES.map(([value, label]) => (
             <button

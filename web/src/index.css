@@ -71,6 +71,23 @@
   color-scheme: dark;
 }
 
+/* Colorblind-friendly dark mode (owner's request 2026-10-30): dark, with Mai's colour codes from the
+   Okabe-Ito palette, which stays distinct with red-green (and most other) colorblindness. Red, which reads
+   as brown or grey to many, becomes orange (translations, Mai's crossed-out and underlined words); the five
+   correction highlights become sky blue, yellow, reddish purple, orange and a deeper blue, apart in
+   lightness too (checked through deuteranopia and protanopia simulations); and what's written on them is
+   dark ink rather than red. */
+:root[data-theme='dark'][data-palette='colorblind'] {
+  --translation: #e69f00;
+  --danger: #f0864a;
+  --kind-spelling: #9fd6f5;
+  --kind-foreign: #f3ec84;
+  --kind-frame: #d488b8;
+  --kind-dialect: #e9a23b;
+  --kind-pronoun: #6aa6e0;
+  --kind-fix: #1b1d52;
+}
+
 * {
   box-sizing: border-box;
 }
