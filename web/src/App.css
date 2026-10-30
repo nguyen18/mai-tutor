@@ -3259,3 +3259,55 @@ button.feedback-attach {
   margin: 0 0 12px;
   font-size: 1.1rem;
 }
+
+/* "Don't forget to sign in…" (components/SignInNudge.tsx): a rounded card where the 💬 button sits for
+   signed-in users, just above the ☰ menu. */
+.sign-in-nudge {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px + 12px);
+  z-index: 25;
+  width: min(260px, calc(100vw - 32px));
+  padding: 10px 36px 10px 12px;
+  /* Blush pink, the palette's pink (owner's feedback). */
+  background: var(--blush);
+  border: 1.5px solid var(--text);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--text);
+}
+
+.sign-in-nudge.raised {
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 150px + 52px + 12px);
+}
+
+.sign-in-nudge p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.sign-in-nudge a {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+button.sign-in-nudge-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+}
+
+@media (max-width: 600px) {
+  body.journal-editing .sign-in-nudge {
+    display: none;
+  }
+}
