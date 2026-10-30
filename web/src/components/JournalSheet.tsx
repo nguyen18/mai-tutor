@@ -46,7 +46,32 @@ export function JournalSheet({ text, items, onTextChange, onItemsChange, placeho
   const [selected, setSelected] = useState<string | null>(null)
   const width = useWidth(sheet)
   const outlineOf = useOutlines(items)
-  const floats = wrapFloats(items, width, outlineOf, (i) => Boolean(i.caption) || (editable && i.id === selected), corner)
+  // How far each picture's caption (or caption box, while editing) reaches below it, measured whenever a
+  // picture or caption changes size, so the text wraps around the caption as it is, not a guess.
+  const [captions, setCaptions] = useState<Record<string, number>>({})
+  useEffect(() => {
+    if (!sheet) return
+    const measure = () => {
+      const next: Record<string, number> = {}
+      for (const el of sheet.querySelectorAll<HTMLElement>('.sheet-item[data-id]')) {
+        const img = el.querySelector('img')
+        const caption = el.querySelector<HTMLElement>('.item-caption, .item-caption-input')
+        if (img && caption) next[el.dataset.id!] = Math.max(0, caption.offsetTop + caption.offsetHeight - img.offsetHeight)
+      }
+      setCaptions((prev) => {
+        const same =
+          Object.keys(next).length === Object.keys(prev).length &&
+          Object.entries(next).every(([id, h]) => Math.abs((prev[id] ?? -1) - h) < 1)
+        return same ? prev : next
+      })
+    }
+    // Fires once for each element as it starts being observed (so after a caption comes or goes too), then
+    // on every resize.
+    const observer = new ResizeObserver(measure)
+    for (const el of sheet.querySelectorAll('.sheet-item img, .item-caption, .item-caption-input')) observer.observe(el)
+    return () => observer.disconnect()
+  }, [sheet, items, selected])
+  const floats = wrapFloats(items, width, outlineOf, (i) => captions[i.id] ?? 0, corner)
   // The latest items, for drags: a drag's pointer handlers outlive the render that started it.
   const itemsRef = useRef(items)
   useLayoutEffect(() => {
@@ -235,6 +260,7 @@ function ItemView({ item, editable, selected, onStart, onKey, onFocus, onRemove,
   return (
     <div
       className={`sheet-item ${item.kind}${selected ? ' selected' : ''}`}
+      data-id={item.id}
       style={{
         left: `${item.x * 100}cqw`,
         top: `${item.y * 100}cqw`,
