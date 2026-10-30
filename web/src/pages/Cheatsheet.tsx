@@ -220,9 +220,18 @@ function useFitRow() {
   const fit = () => {
     const li = ref.current
     if (!li) return
-    for (const step of FIT_STEPS) {
-      li.dataset.fit = step
-      if (li.scrollWidth <= li.clientWidth) return
+    // An open word box hangs off the row and would count as overflow (picking a meaning re-fits the row
+    // while its box is open, which shrank the row's text for good; owner's report 2026-10-30), so it's
+    // left out of the measuring.
+    const tips = [...li.querySelectorAll<HTMLElement>('.tip')]
+    for (const tip of tips) tip.style.display = 'none'
+    try {
+      for (const step of FIT_STEPS) {
+        li.dataset.fit = step
+        if (li.scrollWidth <= li.clientWidth) return
+      }
+    } finally {
+      for (const tip of tips) tip.style.display = ''
     }
   }
   useLayoutEffect(fit)
