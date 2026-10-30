@@ -2819,8 +2819,16 @@ ruby.fix {
   border: 1.5px solid var(--ink);
 }
 
+/* ✎ and 🗑 faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
 .entry-tools .icon-button.small {
   font-size: 0.95rem;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+
+.entry-tools .icon-button.small:hover,
+.entry-tools .icon-button.small:focus-visible {
+  opacity: 1;
 }
 
 /* The floating menu needs room under each page's last line. */
