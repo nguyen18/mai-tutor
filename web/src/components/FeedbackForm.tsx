@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { MAX_DETAILS, MAX_SUMMARY, sendFeedback } from '../lib/feedback'
+import { MAX_DETAILS, MAX_SUMMARY, sendFeedback, type FeedbackKind } from '../lib/feedback'
 
 export type FeedbackState = 'editing' | 'sending' | 'sent'
 
@@ -8,6 +8,7 @@ export type FeedbackState = 'editing' | 'sending' | 'sent'
 // "Wrong definition/word?" pop-up (WordFeedback.tsx), each with its own draft.
 export function FeedbackForm({
   heading,
+  kind = 'general',
   initialSummary = '',
   context,
   detailsRequired = false,
@@ -17,6 +18,8 @@ export function FeedbackForm({
   onClose,
 }: {
   heading: string
+  // The ticket's Issue on the board.
+  kind?: FeedbackKind
   initialSummary?: string
   // Extra lines for the ticket (the word a pop-up is about).
   context?: Record<string, string>
@@ -62,7 +65,7 @@ export function FeedbackForm({
     setState('sending')
     setError(null)
     try {
-      await sendFeedback({ summary, details, image, context })
+      await sendFeedback({ summary, details, image, context, kind })
       setState('sent')
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't send it. Try again.")
