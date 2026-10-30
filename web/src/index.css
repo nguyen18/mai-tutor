@@ -15,6 +15,8 @@
   color-scheme: light;
   /* Space Grotesk (loaded in index.html), owner's pick 2026-10-30: geometric grotesque sans. */
   --display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Playpen Sans (rounded marker handwriting): what the learner writes on a journal page (2026-10-30). */
+  --hand: 'Playpen Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-family: var(--display);
   line-height: 1.5;
   color: var(--text);
