@@ -18,9 +18,6 @@ const MENU_ITEMS: { route: Route; label: string }[] = [
   { route: 'settings', label: 'Settings' },
 ]
 
-// Planned features from NOTES.md, shown in the menu so the app's direction is visible.
-const COMING_SOON = ['Personal phrasebook', 'Feelings map', 'Flashcards']
-
 function App() {
   const route = useRoute()
 
@@ -106,12 +103,6 @@ function SiteMenu({ route }: { route: Route }) {
             >
               {item.label}
             </a>
-          ))}
-          <p className="menu-heading">Coming soon</p>
-          {COMING_SOON.map((label) => (
-            <span key={label} className="menu-soon">
-              {label}
-            </span>
           ))}
         </nav>
       )}
