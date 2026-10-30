@@ -136,8 +136,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
           </div>
         </div>
       ) : (
-        // Compact once the list has words: the box and buttons share one row, and the count and "Clear list"
-        // a small line under it (owner's feedback 2026-10-01: the section took up too much space).
+        // Compact once the list has words: the box, the buttons, and the count and "Clear list" at the right,
+        // share one row (owner's feedback 2026-10-01: the section took up too much space).
         <form className={empty ? 'add-word-form' : 'add-word-form compact'} onSubmit={submit} aria-label="Add your words">
           {!full && (
             <label htmlFor={`${id}-words`} className="sr-only">
@@ -178,37 +178,39 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
               hidden
               onChange={(e) => void upload(e.target.files?.[0])}
             />
+            {/* The count and "Clear list", at the right end of the upload button's row (owner's request
+                2026-10-30; before: a line under it). */}
+            {!empty && (
+              <span className="muted my-words-meta">
+                {words.length} of {MAX_MY_WORDS} words ·{' '}
+                {confirmingClear ? (
+                  <>
+                    Clear all {words.length} words?{' '}
+                    <button
+                      type="button"
+                      className="link danger-link"
+                      onClick={() => {
+                        onReplace([])
+                        setConfirmingClear(false)
+                      }}
+                    >
+                      Clear
+                    </button>{' '}
+                    <button type="button" className="link" onClick={() => setConfirmingClear(false)}>
+                      Keep
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="link danger-link" onClick={() => setConfirmingClear(true)}>
+                    Clear list
+                  </button>
+                )}
+              </span>
+            )}
           </div>
         </form>
       )}
       {message && <p className="muted my-words-status">{message}</p>}
-      {!empty && (
-        <p className="muted my-words-meta">
-          {words.length} of {MAX_MY_WORDS} words ·{' '}
-          {confirmingClear ? (
-            <>
-              Clear all {words.length} words?{' '}
-              <button
-                type="button"
-                className="link danger-link"
-                onClick={() => {
-                  onReplace([])
-                  setConfirmingClear(false)
-                }}
-              >
-                Clear
-              </button>{' '}
-              <button type="button" className="link" onClick={() => setConfirmingClear(false)}>
-                Keep
-              </button>
-            </>
-          ) : (
-            <button type="button" className="link danger-link" onClick={() => setConfirmingClear(true)}>
-              Clear list
-            </button>
-          )}
-        </p>
-      )}
       {/* The Discoverer's way in from the Cheatsheet (owner's request 2026-10-01: here, not in the menu). */}
       <a className="discover-link" href={ROUTE_HREF.discover}>
         <span>

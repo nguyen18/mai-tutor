@@ -1147,8 +1147,9 @@ button.pronoun-star {
 }
 
 .my-words-status,
+/* At the right end of the upload button's row. */
 .my-words-meta {
-  margin: 6px 0 0;
+  margin-left: auto;
   font-size: 0.8rem;
 }
 
