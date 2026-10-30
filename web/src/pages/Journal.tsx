@@ -107,7 +107,7 @@ export function Journal() {
 
   return (
     <main className="journal-page">
-      {/* Floats in the top-right corner, styled like the ☰ menu (owner's request 2026-10-29). The
+      {/* In the top-right corner: fixed on a computer, at the top of the page on a phone (App.css). The
           editor opens at the top of the page, so the page scrolls up to it. */}
       {!editing && (
         <button

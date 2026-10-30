@@ -1982,7 +1982,9 @@ button.icon-button:active {
   background: var(--accent-soft);
 }
 
-/* New entry: a square ＋ floating in the top-right corner, in the style of the ☰ menu in the bottom-left. */
+/* New entry: a square ＋ in the top-right corner (owner's requests 2026-10-29). On a computer it stays in
+   the corner while the page scrolls, like the ☰ menu; on a phone it sits at the top of the page and
+   scrolls away with it. No shadow. */
 button.icon-button.new-entry-fab {
   position: fixed;
   top: max(16px, env(safe-area-inset-top));
@@ -1991,7 +1993,17 @@ button.icon-button.new-entry-fab {
   width: 52px;
   height: 52px;
   font-size: 1.6rem;
-  box-shadow: 3px 3px 0 var(--ink);
+}
+
+@media (max-width: 600px) {
+  button.icon-button.new-entry-fab {
+    position: absolute;
+  }
+
+  /* The intro starts below the button, not under it. */
+  .journal-title-row {
+    min-height: 48px;
+  }
 }
 
 .journal-intro {
