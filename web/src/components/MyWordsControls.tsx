@@ -32,11 +32,10 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
   const offer = (found: string[], source: string) => {
     setMessage(null)
     if (!found.length) return setMessage(`No English words found in ${source}.`)
-    // An empty list just takes them; otherwise ask whether to replace the list or add to it.
-    if (empty) {
-      onReplace(found)
-      setMessage(`Added ${found.length} ${found.length === 1 ? 'word' : 'words'} from ${source}.`)
-    } else setFound({ words: found, source })
+    // An empty list just takes them (no "Added N words from …" line: the list shows them; owner's
+    // request 2026-10-30); otherwise ask whether to replace the list or add to it.
+    if (empty) onReplace(found)
+    else setFound({ words: found, source })
   }
 
   const submit = (e: FormEvent) => {
@@ -124,10 +123,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
               onClick={() => {
                 const added = onAdd(found.words)
                 const full = words.length + added >= MAX_MY_WORDS
-                setMessage(
-                  `Added ${added} new ${added === 1 ? 'word' : 'words'}.` +
-                    (full ? ` Your list is full (${MAX_MY_WORDS} words): remove some to add more.` : ''),
-                )
+                // Only the warning, not "Added N new words".
+                setMessage(full ? `Your list is full (${MAX_MY_WORDS} words): remove some to add more.` : null)
                 setFound(null)
               }}
             >
