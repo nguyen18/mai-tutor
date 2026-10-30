@@ -5,6 +5,7 @@ import { ROUTE_HREF, useRoute, type Route } from './lib/useRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackButton } from './components/FeedbackButton'
 import { WordFeedbackDialog } from './components/WordFeedback'
+import { SignInNudge } from './components/SignInNudge'
 import { startSync } from './lib/sync'
 import './App.css'
 
@@ -38,6 +39,7 @@ function App() {
       <SiteMenu key={route} route={route} />
       <FeedbackButton raised={route === 'discover'} />
       <WordFeedbackDialog />
+      <SignInNudge raised={route === 'discover'} hidden={route === 'settings'} />
       {route === 'discover' ? (
         <Discoverer />
       ) : route === 'cheatsheet' ? (
