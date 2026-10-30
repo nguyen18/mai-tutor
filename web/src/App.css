@@ -2018,9 +2018,10 @@ button.tip-trigger.journal-info {
   position: relative;
   width: 16px;
   height: 16px;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  font-style: italic;
+  /* 700 is Space Grotesk's heaviest; the stroke thickens the tiny i a little more. */
+  -webkit-text-stroke: 0.4px currentColor;
   line-height: 1;
   color: var(--muted);
   border: 1.2px solid currentColor;
