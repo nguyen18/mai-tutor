@@ -2006,10 +2006,46 @@ button.icon-button.new-entry-fab {
   }
 }
 
-.journal-intro {
-  margin: 8px 0 0;
-  font-size: 0.9rem;
+/* ⓘ next to the Journal title; its box holds the intro. */
+.journal-info-wrap {
+  position: relative;
+  margin-right: auto;
+}
+
+button.tip-trigger.journal-info {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
   color: var(--muted);
+  border: 1.2px solid currentColor;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+/* Small to look at, but a finger-sized area to tap. */
+button.tip-trigger.journal-info::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+button.tip-trigger.journal-info[aria-expanded='true'] {
+  color: var(--ink);
+}
+
+.journal-intro {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.tip-box .journal-intro p + p {
+  margin-top: 8px;
 }
 
 .journal-empty {

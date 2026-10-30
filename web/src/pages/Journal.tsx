@@ -127,12 +127,26 @@ export function Journal() {
         <header className="journal-top">
           <div className="journal-title-row">
             <h1 className="slashed">Journal</h1>
+            {/* The how-to sits behind an ⓘ next to the title: hover on a computer, tap on a phone. */}
+            <Popover
+              title="How the journal works"
+              trigger="i"
+              triggerClassName="journal-info"
+              triggerLabel="How the journal works"
+              align="start"
+              wrapClassName="journal-info-wrap"
+            >
+              <div className="journal-intro">
+                <p>
+                  Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
+                </p>
+                <p>
+                  Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
+                  are red.
+                </p>
+              </div>
+            </Popover>
           </div>
-          <p className="journal-intro">
-            Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>. 
-            <p></p> Stuck on a word? Write it in English and Mai fills
-            it in: your words stay blue, Mai's notes are red.
-          </p>
           <HighlightKey extraChecks={extraChecks} target={target} />
         </header>
 
