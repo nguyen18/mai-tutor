@@ -333,11 +333,13 @@ button.menu-fab[aria-expanded='true'] {
   color: var(--accent);
 }
 
+/* The same border as a journal entry (owner's requests 2026-10-30, Cheatsheets and Settings): --text is
+   the journal's --ink, which only the journal page defines; both have 12px corners. */
 .card {
   margin-top: 24px;
   padding: 20px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--text);
   border-radius: 12px;
 }
 
@@ -425,12 +427,6 @@ button.menu-fab[aria-expanded='true'] {
 }
 
 /* Collapsible cheatsheet lists */
-
-/* The same border as a journal entry (owner's request 2026-10-30): --text is the journal's --ink, which
-   only the journal page defines; both have 12px corners. */
-.card.cheat-list {
-  border: 1.5px solid var(--text);
-}
 
 .cheat-list > summary {
   align-items: center;
