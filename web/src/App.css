@@ -2835,12 +2835,29 @@ ruby.fix {
 }
 
 
+/* Laid out by hand, not as ruby: Safari adds a ruby's annotation to its line's height, so on an iPhone
+   every corrected line grew taller than a grid row and the text drifted off the lines (owner's feedback
+   2026-10-30). The word and Mai's word share one grid cell, as wide as the wider of the two (as ruby
+   was), the word keeping the line's height; Mai's word is moved up just over it, which doesn't take
+   room, so lines stay one row tall in every browser. */
+.journal-text.annotated ruby.fix {
+  display: inline-grid;
+  justify-items: center;
+  align-items: center;
+}
+
+.journal-text.annotated ruby.fix > .fix-original,
+.journal-text.annotated ruby.fix > .fix-new {
+  grid-area: 1 / 1;
+}
+
 .journal-text.annotated .fix-new {
-  /* Lifted a little off the word it replaces, so the two don't crowd each other (owner's request
-     2026-10-22). The ruled lines are tall enough that it stays inside its line. */
-  position: relative;
-  top: -5px;
+  display: block;
   font-size: 1em;
+  white-space: nowrap;
+  /* From the middle of the line to just over the word (0.75em: half the word's text height), where the
+     ruby's was after its 5px lift (owner's request 2026-10-22). */
+  transform: translateY(calc(-50% - 0.75em + 2px));
 }
 
 /* An entry's audio note: just the player bar, in the bottom row beside ✎ and 🗑. */
