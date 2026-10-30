@@ -42,6 +42,7 @@ export async function shrinkImage(file: File): Promise<File> {
 // Opening the feedback form from elsewhere: a word box's "Wrong definition/word?" button (owner's request
 // 2026-10-30) opens its own pop-up (components/WordFeedback.tsx) with the sentence started and the word
 // in the ticket's context.
+export type FeedbackKind = 'general' | 'word'
 export type FeedbackRequest = { summary: string; context: Record<string, string> }
 const OPEN_EVENT = 'mai:open-feedback'
 
@@ -61,6 +62,8 @@ export async function sendFeedback(feedback: {
   details: string
   image: File | null
   context?: Record<string, string>
+  // Which form sent it, the ticket's Issue: the 💬 button's or a word box's (WordFeedback.tsx).
+  kind?: FeedbackKind
 }): Promise<string | null> {
   const client = await supabase()
   const { data } = await client.auth.getSession()
@@ -70,6 +73,7 @@ export async function sendFeedback(feedback: {
   const form = new FormData()
   form.append('summary', feedback.summary.trim())
   form.append('details', feedback.details.trim())
+  form.append('kind', feedback.kind ?? 'general')
   if (feedback.image) form.append('image', await shrinkImage(feedback.image))
   form.append(
     'context',

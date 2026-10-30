@@ -5,13 +5,16 @@
 // - details: more details, the ticket page's text (optional)
 // - image:   one screenshot or picture (optional; the browser has already shrunk it to a JPEG)
 // - context: JSON with where it was sent from (page, screen, browser), shown at the bottom of the ticket
+// - kind:    which form sent it: 'general' (the 💬 button) or 'word' (a word box's "Wrong definition/word?");
+//            the ticket's Issue (owner's request 2026-10-30). Missing or unknown: general.
 //
 // Returns { id, ticket } (ticket: the Notion page's URL, or null when Notion failed: the feedback is
 // still saved). The feedback is saved first, as the user (RLS: supabase/migrations/…_feedback.sql), so
 // nothing is lost if Notion fails. The reporter's email comes from their sign-in, not from the form.
 //
-// The ticket: Name = summary, Status = Not started, User reported = the email, Assign = the owner (who
-// Notion then notifies); the page holds the details, the image, and the context. Secrets: NOTION_TOKEN
+// The ticket: Name = summary, Status = Not started, Issue = General or Word/definition (from kind), User
+// reported = the email, Assign = the owner (who Notion then notifies); the page holds the details, the
+// image, and the context. Secrets: NOTION_TOKEN
 // (the "Mai feedback" internal integration, connected to the mai tutor page), NOTION_DATA_SOURCE_ID (the
 // "user tickets" board), NOTION_ASSIGNEE_ID (the owner's Notion user id).
 
@@ -23,6 +26,9 @@ const MAX_SUMMARY = 200
 const MAX_DETAILS = 5000
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }
+// The ticket's Issue (a select on the board) for each form.
+// The names must match the board's options exactly, or Notion adds new ones.
+const ISSUES: Record<string, string> = { general: 'General', word: 'Word/definition' }
 // Tickets a user can send in an hour.
 const HOURLY_LIMIT = 5
 
@@ -67,6 +73,9 @@ const handler = async (req: Request): Promise<Response> => {
     // No context, then.
   }
   context.received = new Date().toISOString()
+  const sentKind = String(form.get('kind') ?? '')
+  const kind = Object.hasOwn(ISSUES, sentKind) ? sentKind : 'general'
+  context.kind = kind
 
   if (!summary) return json({ error: 'Write your feedback in a sentence first.' }, 400)
   if (summary.length > MAX_SUMMARY) return json({ error: `Keep the first box under ${MAX_SUMMARY} characters.` }, 400)
@@ -94,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   // Then the ticket.
   try {
-    const ticket = await createTicket({ summary, details, image, email: user.email, context })
+    const ticket = await createTicket({ summary, details, image, email: user.email, context, issue: ISSUES[kind] })
     await db.from('feedback').update({ notion_url: ticket }).eq('id', id)
     return json({ id, ticket })
   } catch (e) {
@@ -155,6 +164,7 @@ async function createTicket(f: {
   image: File | null
   email: string
   context: Record<string, unknown>
+  issue: string
 }): Promise<string> {
   const imageId = f.image ? await uploadImage(f.image) : null
   const contextLines = Object.entries(f.context)
@@ -184,6 +194,7 @@ async function createTicket(f: {
         Name: { title: [{ type: 'text', text: { content: f.summary } }] },
         Status: { status: { name: 'Not started' } },
         'User reported': { email: f.email },
+        Issue: { select: { name: f.issue } },
         ...(assignee ? { Assign: { people: [{ id: assignee }] } } : {}),
       },
       children,

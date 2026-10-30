@@ -53,6 +53,7 @@ export function WordFeedbackDialog() {
         <FeedbackForm
           key={request.id}
           heading="Wrong definition/word? Bad definition ordering/ranking?"
+          kind="word"
           initialSummary={request.summary}
           context={request.context}
           detailsRequired
