@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { AudioNotePlayer } from '../components/AudioNoteRecorder'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { JournalEditor } from '../components/JournalEditor'
 import { JournalSheet } from '../components/JournalSheet'
 import { backendConfigured } from '../lib/backend'
@@ -220,6 +221,7 @@ type CardProps = {
 
 function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onEdit, onDelete }: CardProps) {
   const [confirming, setConfirming] = useState(false)
+  const [asking, setAsking] = useState(false)
   const lang = targetById(entry.targetId)
   // A check from before the entry was last edited (or in an older format) doesn't count.
   const check = currentCheck(entry)
@@ -237,7 +239,7 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
           {entry.audio && !confirming && <AudioNotePlayer audio={entry.audio} bare />}
           {confirming ? (
             <span className="journal-confirm">
-              <button type="button" className="chip danger" onClick={onDelete}>
+              <button type="button" className="chip danger" onClick={() => setAsking(true)}>
                 Delete
               </button>{' '}
               <button type="button" className="chip" onClick={() => setConfirming(false)}>
@@ -255,6 +257,20 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
             </>
           )}
         </div>
+        {/* Three clicks to delete (owner's request 2026-10-30): 🗑, the red Delete, then Yes here. */}
+        {asking && (
+          <ConfirmDialog
+            title="Are you sure?"
+            message="This entry will be deleted. It can't be undone."
+            confirmLabel="Yes"
+            cancelLabel="No"
+            onConfirm={onDelete}
+            onCancel={() => {
+              setAsking(false)
+              setConfirming(false)
+            }}
+          />
+        )}
         {(entry.text || entry.items.length > 0) && (
           <JournalSheet
             text={entry.text}

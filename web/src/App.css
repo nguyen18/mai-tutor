@@ -1577,6 +1577,24 @@ button.chip.danger {
   font-size: 1.15rem;
 }
 
+/* ConfirmDialog: a small "are you sure?" card. */
+.modal.confirm-dialog {
+  width: min(320px, 100%);
+  border: 1.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.confirm-dialog p {
+  margin: 0;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 /* Sized by its picture's shape (no object-fit), so pointer positions map straight onto the picture. */
 .sticker-canvas {
   display: block;
