@@ -3237,9 +3237,14 @@ button.feedback-attach {
 .tip-box button.link.wrong-word {
   display: block;
   margin: 10px 0 0 auto;
-  padding: 0;
+  /* Outlined all round, with room inside: the box's section rule alone drew a curved line touching the
+     words (owner's feedback). */
+  padding: 3px 10px;
   font-size: 0.75rem;
+  line-height: 1.4;
   color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
 }
 
 .modal.word-feedback {
