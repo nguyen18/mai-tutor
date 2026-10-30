@@ -2767,13 +2767,17 @@ ruby.fix {
   background: var(--kind-pronoun);
 }
 
-/* Dark mode: the highlights stay bright, so their text is light mode's ink, and Mai's words its red. */
-:root[data-theme='dark'] [data-kind] {
+/* Dark mode: the highlights stay bright, so their text is light mode's ink, and Mai's words its red. With
+   colorblind-friendly colours (light too), Mai's words on them are the ink instead (index.css). */
+:root[data-theme='dark'] [data-kind],
+:root[data-palette='colorblind'] [data-kind] {
   color: var(--kind-ink);
 }
 
 :root[data-theme='dark'] .fix-new[data-kind],
-:root[data-theme='dark'] [class*='kind-'] .change-mark {
+:root[data-theme='dark'] [class*='kind-'] .change-mark,
+:root[data-palette='colorblind'] .fix-new[data-kind],
+:root[data-palette='colorblind'] [class*='kind-'] .change-mark {
   color: var(--kind-fix);
 }
 
