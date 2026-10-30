@@ -26,7 +26,6 @@ import { targetById, useTargetLanguage } from '../lib/languages'
 import { useMyWords } from '../lib/myWords'
 import { useWordEntries } from '../lib/translateWords'
 import { MyWordsControls } from '../components/MyWordsControls'
-import { ROUTE_HREF } from '../lib/useRoute'
 
 export function Cheatsheet() {
   // Suspends until the language's pre-built translations have loaded (App shows a loading message
@@ -55,21 +54,7 @@ export function Cheatsheet() {
             align="start"
             wrapClassName="page-info-wrap"
           >
-            {/* The language line and Wiktionary's credit live here too, off the page (owner's requests
-                2026-10-30); the credit has to stay somewhere visible (CC BY-SA 4.0). */}
-            <div className="page-intro">
-              <p>Handy word lists to keep nearby while you learn.</p>
-              <p>
-                Translating to <strong>{target.label}</strong> · <a href={ROUTE_HREF.settings}>Change language</a>
-              </p>
-              <p className="muted">
-                Meanings and translations from{' '}
-                <a href="https://www.wiktionary.org/" target="_blank" rel="noreferrer">
-                  Wiktionary
-                </a>{' '}
-                (CC BY-SA 4.0), via which-dialect.
-              </p>
-            </div>
+            <p className="page-intro">Handy word lists to keep nearby while you learn.</p>
           </Popover>
         </div>
       </header>
@@ -205,6 +190,7 @@ function ListCard({ list, picks, setPick, onRemoveEntry, children, emptyText = '
       ) : (
         emptyText && <p className="muted empty-list">{emptyText}</p>
       )}
+      {list.attribution && list.entries.length > 0 && <p className="attribution muted">{list.attribution}</p>}
       {children}
     </details>
   )

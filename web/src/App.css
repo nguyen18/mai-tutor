@@ -807,6 +807,11 @@ button.tip-trigger.word-trigger {
   color: var(--muted);
 }
 
+.attribution {
+  margin-top: 14px;
+  font-size: 0.75rem;
+}
+
 /* Long meaning lists ("going" has 25) scroll inside the box on larger screens too. */
 @media (min-width: 601px) {
   .tip-box {
@@ -1180,9 +1185,11 @@ a.discover-link:hover {
   border-color: var(--accent);
 }
 
+/* No divider over them: the list's last row already has its line (owner's request 2026-10-30). */
 .custom-controls.my-words-controls {
   margin-top: 12px;
-  padding-top: 12px;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* Smaller than the form's main buttons (owner's feedback 2026-10-01). */
@@ -2052,10 +2059,6 @@ button.tip-trigger.page-info[aria-expanded='true'] {
 .page-intro {
   font-size: 0.9rem;
   color: var(--text);
-}
-
-.tip-box .page-intro .muted {
-  font-size: 0.8rem;
 }
 
 .tip-box .page-intro p + p {
