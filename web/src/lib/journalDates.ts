@@ -1,5 +1,5 @@
 // An entry's date and week, written in the language being learned, for the journal's date row and weekday
-// strip ("Thứ Năm, 1 tháng 10, 2026"; "Thứ 2 … CN", or "Thứ Hai … Chủ Nhật" in full). Uses the browser's Intl formatting, so it
+// strip ("1 tháng 10, 2026"; "Thứ 2 … CN", or "Thứ Hai … Chủ Nhật" in full). Uses the browser's Intl formatting, so it
 // works for any language the browser knows, with no data of our own.
 
 type IntlLocaleWithInfo = Intl.Locale & {
@@ -33,7 +33,7 @@ function direction(lang: string): 'ltr' | 'rtl' {
 }
 
 export type EntryDate = {
-  /** "Thứ Năm, 1 tháng 10, 2026" */
+  /** "1 tháng 10, 2026" (no weekday: the week strip circles it) */
   date: string
   /** "21:30" or "9:30 PM", as the language writes times. */
   time: string
@@ -68,7 +68,8 @@ export function entryDate(when: string, lang: string): EntryDate {
     }
   })
   return {
-    date: format(lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+    // No weekday: the week strip under it circles the day (owner's request 2026-10-30).
+    date: format(lang, { day: 'numeric', month: 'long', year: 'numeric' }),
     time: format(lang, { hour: 'numeric', minute: '2-digit' }),
     week,
     english: format('en', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
