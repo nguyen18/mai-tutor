@@ -4,7 +4,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { JournalEditor } from '../components/JournalEditor'
 import { JournalSheet } from '../components/JournalSheet'
 import { backendConfigured } from '../lib/backend'
-import { useJournal, useJournalExtraChecks, type JournalEntry } from '../lib/journal'
+import { nowLocal, useJournal, useJournalExtraChecks, type JournalEntry } from '../lib/journal'
 import { Popover } from '../components/Popover'
 import {
   changeKey,
@@ -27,7 +27,7 @@ import {
 import type { CheatsheetEntry, Meaning } from '../lib/cheatsheet'
 import { targetById, useTargetLanguage, type TargetLanguage } from '../lib/languages'
 import { entryFor } from '../lib/translateWords'
-import { entryDate } from '../lib/journalDates'
+import { entryDate, monthLabel } from '../lib/journalDates'
 import { EntryHead } from '../components/EntryHead'
 import { loadWordOptions, type WordAlternatives } from '../lib/wordOptions'
 import { currentCheck, useWordLookups } from '../lib/wordLookups'
@@ -48,6 +48,8 @@ export function Journal() {
   const { entries, error, save, remove } = useJournal()
   const [extraChecks] = useJournalExtraChecks()
   const [editing, setEditing] = useState<Editing>(null)
+  // The month whose entries show ("2026-10"; owner's request 2026-10-30): this month to start with.
+  const [month, setMonth] = useState(() => nowLocal().slice(0, 7))
   const [checks, setChecks] = useState<CheckState>({})
   // Every word box's content, fetched ahead of a tap and saved with the entry.
   useWordLookups(entries, save)
@@ -97,6 +99,8 @@ export function Journal() {
   const onSave = async (entry: JournalEntry) => {
     await save(entry)
     setEditing(null)
+    // An entry dated in another month shows there, rather than seeming to disappear.
+    setMonth(entry.when.slice(0, 7))
     window.scrollTo(0, 0)
     // Check again only what changed since the last check: the words, then the captions (one after the
     // other, so neither save overwrites the other's).
@@ -108,47 +112,57 @@ export function Journal() {
 
   return (
     <main className="journal-page">
-      {/* In the top-right corner: fixed on a computer, at the top of the page on a phone (App.css). The
-          editor opens at the top of the page, so the page scrolls up to it. */}
-      {!editing && (
-        <button
-          type="button"
-          className="icon-button new-entry-fab"
-          aria-label="New entry"
-          title="New entry"
-          onClick={() => {
-            setEditing({})
-            window.scrollTo(0, 0)
-          }}
-        >
-          ＋
-        </button>
-      )}
+      {/* New entry, in the top-right corner: fixed on a computer, at the top of the page on a phone (App.css).
+          The editor opens at the top of the page, so the page scrolls up to it. */}
+      <div className="journal-corner">
+        {!editing && (
+          <button
+            type="button"
+            className="icon-button new-entry-fab"
+            aria-label="New entry"
+            title="New entry"
+            onClick={() => {
+              setEditing({})
+              window.scrollTo(0, 0)
+            }}
+          >
+            ＋
+          </button>
+        )}
+      </div>
       <div className="journal-inner">
         <header className="journal-top">
-          <div className="journal-title-row">
-            <h1 className="slashed">Journal</h1>
-            {/* The how-to sits behind an ⓘ next to the title: hover on a computer, tap on a phone. */}
-            <Popover
-              title="How the journal works"
-              trigger="i"
-              triggerClassName="page-info"
-              triggerLabel="How the journal works"
-              align="start"
-              wrapClassName="page-info-wrap"
-            >
-              <div className="page-intro">
-                <p>
-                  Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
-                </p>
-                <p>
-                  Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
-                  are red.
-                </p>
-              </div>
-            </Popover>
-          </div>
-          <HighlightKey extraChecks={extraChecks} target={target} />
+          {/* No visible title (owner's request): the page's heading is for screen readers. */}
+          <h1 className="sr-only">Journal</h1>
+          {entries && entries.length > 0 && (
+            <MonthPicker month={month} entries={entries} lang={target.code} onChange={setMonth} />
+          )}
+          {/* The how-to sits behind an ⓘ at the end of the highlight key (owner's request 2026-10-30, with the
+              page title gone): hover on a computer, tap on a phone. */}
+          <HighlightKey
+            extraChecks={extraChecks}
+            target={target}
+            info={
+              <Popover
+                title="How the journal works"
+                trigger="i"
+                triggerClassName="page-info"
+                triggerLabel="How the journal works"
+                align="start"
+                wrapClassName="page-info-wrap"
+              >
+                <div className="page-intro">
+                  <p>
+                    Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
+                  </p>
+                  <p>
+                    Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
+                    are red.
+                  </p>
+                </div>
+              </Popover>
+            }
+          />
         </header>
 
         {error && <p className="error">{error}</p>}
@@ -173,10 +187,12 @@ export function Journal() {
 
         {entries === null ? (
           <p className="muted">Loading your journal…</p>
-        ) : entries.length === 0 ? null : (
+        ) : entries.length === 0 ? null : !entries.some((e) => e.when.startsWith(month)) ? (
+          <p className="muted journal-month-empty">No entries in {monthLabel(month, target.code)} yet.</p>
+        ) : (
           <ol className="journal-list">
             {entries
-              .filter((e) => e.id !== editing?.entry?.id)
+              .filter((e) => e.when.startsWith(month) && e.id !== editing?.entry?.id)
               .map((entry) => (
                 <EntryCard
                   key={entry.id}
@@ -798,10 +814,66 @@ function WordAlternativesBox({ word, shown, onPick, target, tag = 'your word', s
 }
 
 
+// The month and year whose entries show, where the page title was (owner's request 2026-10-30): ‹ and ›
+// step to the next month with entries, older or newer; the dropdown lists every month that has entries
+// (and the one showing), newest first, written in the language being learned like the entries' dates.
+function MonthPicker({
+  month,
+  entries,
+  lang,
+  onChange,
+}: {
+  month: string
+  entries: JournalEntry[]
+  lang: string
+  onChange: (month: string) => void
+}) {
+  const months = [...new Set([month, ...entries.map((e) => e.when.slice(0, 7))])].sort().reverse()
+  const i = months.indexOf(month)
+  const newer = months[i - 1]
+  const older = months[i + 1]
+  return (
+    <div className="month-picker">
+      <button
+        type="button"
+        className="month-step"
+        aria-label={older ? `Earlier: ${monthLabel(older, lang)}` : 'No earlier entries'}
+        disabled={!older}
+        onClick={() => older && onChange(older)}
+      >
+        ‹
+      </button>
+      {/* The month as text, sized to fit, with the dropdown laid over it unseen (a select is as wide as its
+          longest month). */}
+      <span className="month-current">
+        <span className="month-label" lang={lang} aria-hidden="true">
+          {monthLabel(month, lang)}
+        </span>
+        <select value={month} lang={lang} aria-label="Month" onChange={(e) => onChange(e.target.value)}>
+          {months.map((m) => (
+            <option key={m} value={m}>
+              {monthLabel(m, lang)}
+            </option>
+          ))}
+        </select>
+      </span>
+      <button
+        type="button"
+        className="month-step"
+        aria-label={newer ? `Later: ${monthLabel(newer, lang)}` : 'No later entries'}
+        disabled={!newer}
+        onClick={() => newer && onChange(newer)}
+      >
+        ›
+      </button>
+    </div>
+  )
+}
+
 // The page's highlighter key, under its description: what each tint in Mai's notes means. The regional
 // word and pronoun tints only appear when those checks are on (Settings), and frame and pronoun tints only
-// for languages that have them.
-function HighlightKey({ extraChecks, target }: { extraChecks: boolean; target: TargetLanguage }) {
+// for languages that have them. `info` (the page's ⓘ) follows the last one.
+function HighlightKey({ extraChecks, target, info }: { extraChecks: boolean; target: TargetLanguage; info: ReactNode }) {
   const kinds = [
     'spelling',
     'foreign-word',
@@ -815,6 +887,8 @@ function HighlightKey({ extraChecks, target }: { extraChecks: boolean; target: T
           {kindOf(k).label}
         </li>
       ))}
+      {/* Last in the row, however many highlights there are. */}
+      <li className="legend-info">{info}</li>
     </ul>
   )
 }

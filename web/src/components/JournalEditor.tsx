@@ -38,7 +38,14 @@ function placeNew(items: SheetItem[], w: number, textBottom: number): Pick<Sheet
 }
 
 export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
+  // The entry's date and time. The field's own text can be half-typed: a datetime-local input reports no
+  // value at all while any part is missing (Safari especially), which used to make the preview and the
+  // saved entry fall back to now, so a backdated entry wasn't (owner's report 2026-10-30). `when` keeps the
+  // last complete date; `whenField` is what the field shows.
   const [when, setWhen] = useState(entry?.when ?? nowLocal)
+  const [whenField, setWhenField] = useState(when)
+  // Past entries are fine; future ones aren't (owner's request).
+  const future = when > nowLocal()
   const [text, setText] = useState(entry?.text ?? '')
   const [items, setItems] = useState<SheetItem[]>(entry?.items ?? [])
   const [audio, setAudio] = useState(entry?.audio)
@@ -113,7 +120,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
       await onSave({
         id: entry?.id ?? newId(),
         targetId: entry?.targetId ?? target.id,
-        when: when || nowLocal(),
+        when,
         text: text.trim(),
         items,
         audio,
@@ -131,7 +138,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
   }
 
   const title = entry ? 'Edit entry' : 'New entry'
-  const date = entryDate(when || nowLocal(), target.code)
+  const date = entryDate(when, target.code)
 
   return (
     <section className="journal-editor" aria-label={title}>
@@ -140,7 +147,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
           ←
         </button>
         <h2 className="slashed">{entry ? 'Edit' : 'New entry'}</h2>
-        <button type="button" className="primary" onClick={save} disabled={saving || empty}>
+        <button type="button" className="primary" onClick={save} disabled={saving || empty || future}>
           {saving ? 'Saving…' : 'Save'}
         </button>
       </header>
@@ -153,12 +160,17 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
               className="journal-when"
               type="datetime-local"
               aria-label="Date and time"
-              value={when}
-              onChange={(e) => setWhen(e.target.value)}
+              value={whenField}
+              max={nowLocal()}
+              onChange={(e) => {
+                setWhenField(e.target.value)
+                if (e.target.value) setWhen(e.target.value)
+              }}
             />
             <span className="muted" lang={target.code}>
               {date.date}
             </span>
+            {future && <span className="editor-date-error">That's in the future: pick today or an earlier day.</span>}
           </span>
         </EntryHead>
 

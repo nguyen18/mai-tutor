@@ -76,3 +76,15 @@ export function entryDate(when: string, lang: string): EntryDate {
     dir: direction(lang),
   }
 }
+
+/** A month ("2026-10") written in the language being learned: "tháng 10 năm 2026", "octubre de 2026". */
+export function monthLabel(month: string, lang: string): string {
+  const [year, m] = month.split('-').map(Number)
+  const date = new Date(year, m - 1, 1)
+  const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }
+  try {
+    return date.toLocaleDateString(lang, options)
+  } catch {
+    return date.toLocaleDateString('en', options)
+  }
+}
