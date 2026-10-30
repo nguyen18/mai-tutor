@@ -54,7 +54,14 @@ export function Cheatsheet() {
             align="start"
             wrapClassName="page-info-wrap"
           >
-            <p className="page-intro">Handy word lists to keep nearby while you learn.</p>
+            {/* With how to use the lists, moved here from each list (owner's request 2026-10-30). */}
+            <div className="page-intro">
+              <p>Handy word lists to keep nearby while you learn.</p>
+              <p>
+                Tap an English word to choose the meaning you mean; its translation follows. Tap a translation for
+                other options and examples, and star the one you like best.
+              </p>
+            </div>
           </Popover>
         </div>
       </header>
@@ -128,7 +135,6 @@ type PronounProps = {
 }
 
 function ListCard({ list, picks, setPick, onRemoveEntry, children, emptyText = 'No words yet. Add your first one below.' }: ListCardProps) {
-  const hasMeanings = list.entries.some((e) => e.meanings.length > 1 || e.meanings[0]?.pos)
   const table = list.pronounTable
   const rowFor = (relation: 'listener' | 'about') => {
     const fallback = relation === 'listener' ? table!.defaultListener : table!.defaultAbout
@@ -164,12 +170,6 @@ function ListCard({ list, picks, setPick, onRemoveEntry, children, emptyText = '
         <p className="cheat-legend muted">
           <span className="cheat-word">English</span> ·{' '}
           <span className="cheat-translation">{list.translationLang.label}</span>
-        </p>
-      )}
-      {hasMeanings && (
-        <p className="cheat-hint muted">
-          Tap an English word to choose the meaning you mean; its translation follows. Tap a translation for other
-          options and examples, and star the one you like best.
         </p>
       )}
       {list.entries.length > 0 ? (
