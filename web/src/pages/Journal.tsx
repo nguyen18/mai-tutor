@@ -108,46 +108,48 @@ export function Journal() {
 
   return (
     <main className="journal-page">
-      {/* In the top-right corner: fixed on a computer, at the top of the page on a phone (App.css). The
-          editor opens at the top of the page, so the page scrolls up to it. */}
-      {!editing && (
-        <button
-          type="button"
-          className="icon-button new-entry-fab"
-          aria-label="New entry"
-          title="New entry"
-          onClick={() => {
-            setEditing({})
-            window.scrollTo(0, 0)
-          }}
+      {/* The top-right corner (owner's request 2026-10-30: no page title, the ⓘ moved here, left of ＋): fixed
+          on a computer, at the top of the page on a phone (App.css). The editor opens at the top of the page,
+          so ＋ scrolls the page up to it; while editing, only the ⓘ shows. */}
+      <div className="journal-corner">
+        {/* The how-to sits behind the ⓘ: hover on a computer, tap on a phone. */}
+        <Popover
+          title="How the journal works"
+          trigger="i"
+          triggerClassName="page-info"
+          triggerLabel="How the journal works"
+          align="end"
+          wrapClassName="page-info-wrap"
         >
-          ＋
-        </button>
-      )}
+          <div className="page-intro">
+            <p>
+              Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
+            </p>
+            <p>
+              Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
+              are red.
+            </p>
+          </div>
+        </Popover>
+        {!editing && (
+          <button
+            type="button"
+            className="icon-button new-entry-fab"
+            aria-label="New entry"
+            title="New entry"
+            onClick={() => {
+              setEditing({})
+              window.scrollTo(0, 0)
+            }}
+          >
+            ＋
+          </button>
+        )}
+      </div>
       <div className="journal-inner">
         <header className="journal-top">
-          <div className="journal-title-row">
-            <h1 className="slashed">Journal</h1>
-            {/* The how-to sits behind an ⓘ next to the title: hover on a computer, tap on a phone. */}
-            <Popover
-              title="How the journal works"
-              trigger="i"
-              triggerClassName="page-info"
-              triggerLabel="How the journal works"
-              align="start"
-              wrapClassName="page-info-wrap"
-            >
-              <div className="page-intro">
-                <p>
-                  Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
-                </p>
-                <p>
-                  Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
-                  are red.
-                </p>
-              </div>
-            </Popover>
-          </div>
+          {/* No visible title (owner's request): the page's heading is for screen readers. */}
+          <h1 className="sr-only">Journal</h1>
           <HighlightKey extraChecks={extraChecks} target={target} />
         </header>
 

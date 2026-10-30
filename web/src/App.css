@@ -1991,20 +1991,6 @@ button.tip-trigger.word-mark.picked {
   opacity: 0.55;
 }
 
-.journal-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.journal-title-row h1 {
-  margin: 0;
-  font-size: 1.7rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
 /* Square outline buttons (＋, ←), like a zine's toolbar */
 button.icon-button {
   display: grid;
@@ -2024,14 +2010,21 @@ button.icon-button:active {
   background: var(--accent-soft);
 }
 
-/* New entry: a square ＋ in the top-right corner (owner's requests 2026-10-29). On a computer it stays in
-   the corner while the page scrolls, like the ☰ menu; on a phone it sits at the top of the page and
-   scrolls away with it. No shadow. */
-button.icon-button.new-entry-fab {
+/* The Journal's top-right corner: the ⓘ (the how-to, moved here from beside the page title, which is gone;
+   owner's request 2026-10-30), then New entry, a square ＋ (2026-10-29). On a computer it stays in the
+   corner while the page scrolls, like the ☰ menu; on a phone it sits at the top of the page and scrolls
+   away with it. No shadow. */
+.journal-corner {
   position: fixed;
   top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
   z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+button.icon-button.new-entry-fab {
   /* A little smaller than the ☰ menu's 52px (owner's request 2026-10-30). */
   width: 46px;
   height: 46px;
@@ -2039,13 +2032,14 @@ button.icon-button.new-entry-fab {
 }
 
 @media (max-width: 600px) {
-  button.icon-button.new-entry-fab {
+  .journal-corner {
     position: absolute;
   }
 
-  /* The intro starts below the button, not under it. */
-  .journal-title-row {
-    min-height: 48px;
+  /* The highlight key wraps before the corner's ⓘ and ＋ rather than running under them. */
+  .journal-top {
+    min-height: 46px;
+    padding-right: 104px;
   }
 }
 
