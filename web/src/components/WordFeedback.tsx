@@ -52,7 +52,7 @@ export function WordFeedbackDialog() {
       <div className="modal word-feedback" role="dialog" aria-modal="true" aria-label="Wrong definition or word">
         <FeedbackForm
           key={request.id}
-          heading="Wrong definition/word?"
+          heading="Wrong definition/word? Bad definition ordering/ranking?"
           initialSummary={request.summary}
           context={request.context}
           detailsRequired
