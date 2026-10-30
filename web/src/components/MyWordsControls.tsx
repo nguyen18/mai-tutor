@@ -145,9 +145,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
             </label>
           )}
           <div className="form-row my-words-input">
-            {full ? (
-              <span className="muted my-words-full">Your list is full. Remove a word (✕) to add another.</span>
-            ) : (
+            {/* A full list has no box and no "Your list is full" note (removed 2026-10-30, owner's request). */}
+            {!full && (
               <>
                 <textarea
                   id={`${id}-words`}

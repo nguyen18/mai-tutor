@@ -1189,11 +1189,6 @@ a.discover-link:hover {
   padding-top: 12px;
 }
 
-.my-words-full {
-  flex: 1 1 200px;
-  font-size: 0.85rem;
-}
-
 /* Smaller than the form's main buttons (owner's feedback 2026-10-01). */
 .my-words-controls button.upload-words {
   padding: 4px 12px;
