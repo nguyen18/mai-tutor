@@ -2778,8 +2778,8 @@ ruby.fix {
 }
 
 .fix-new.picked {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--picked);
+  color: var(--picked-ink);
 }
 
 /* The learner's words keep their colour (--writing); English is crossed out, other fixes underlined, in red. */

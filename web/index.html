@@ -18,8 +18,10 @@
       // up to date after that): the choice from Settings, else the device's setting.
       try {
         const choice = localStorage.getItem('mai-tutor:theme')
-        const dark = choice === 'dark' || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        const colorblind = choice === 'dark-colorblind'
+        const dark = choice === 'dark' || colorblind || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+        if (colorblind) document.documentElement.dataset.palette = 'colorblind'
       } catch {
         document.documentElement.dataset.theme = 'light'
       }
