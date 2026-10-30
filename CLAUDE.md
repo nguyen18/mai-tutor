@@ -16,8 +16,11 @@ Read `ARCHITECTURE.md` first (the project's deep-dive doc; keep it updated after
 - **Branches: `develop`, then `master` for releases** (owner's request 2026-10-30). Feature branches start
   from `origin/develop` and their PRs target `develop` (`gh pr create --base develop`). A release to
   mai-tutor.com (Vercel deploys `master`) is a PR from `develop` into `master`, merged with
-  `gh pr merge --merge` and **never deleting `develop`** (no `--delete-branch`; the repo's auto-delete is
-  off). Pushing, PRs and merges still need the owner's go-ahead. Edge functions are deployed by hand, so
+  `gh pr merge --merge` and **never deleting `develop`** (no `--delete-branch`). **Merged branches are
+  deleted** (owner's request 2026-10-30): GitHub's "Automatically delete head branches" is on, and the
+  ruleset "Keep develop and master" blocks deleting those two, so a release can't remove `develop`. Merge
+  feature PRs with `gh pr merge --merge --delete-branch` so the local branch goes too (switch the worktree
+  off it first). Pushing, PRs and merges still need the owner's go-ahead. Edge functions are deployed by hand, so
   deploy them for a release, not for each merge into `develop`, unless the owner asks.
 - Another Claude session may be working in this checkout: check `git branch --show-current` and
   `git status` before switching branches, and use a worktree when it's busy.
