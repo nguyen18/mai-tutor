@@ -132,12 +132,12 @@ export function Journal() {
             <Popover
               title="How the journal works"
               trigger="i"
-              triggerClassName="journal-info"
+              triggerClassName="page-info"
               triggerLabel="How the journal works"
               align="start"
-              wrapClassName="journal-info-wrap"
+              wrapClassName="page-info-wrap"
             >
-              <div className="journal-intro">
+              <div className="page-intro">
                 <p>
                   Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
                 </p>

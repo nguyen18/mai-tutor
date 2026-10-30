@@ -32,11 +32,10 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
   const offer = (found: string[], source: string) => {
     setMessage(null)
     if (!found.length) return setMessage(`No English words found in ${source}.`)
-    // An empty list just takes them; otherwise ask whether to replace the list or add to it.
-    if (empty) {
-      onReplace(found)
-      setMessage(`Added ${found.length} ${found.length === 1 ? 'word' : 'words'} from ${source}.`)
-    } else setFound({ words: found, source })
+    // An empty list just takes them (no "Added N words from …" line: the list shows them; owner's
+    // request 2026-10-30); otherwise ask whether to replace the list or add to it.
+    if (empty) onReplace(found)
+    else setFound({ words: found, source })
   }
 
   const submit = (e: FormEvent) => {
@@ -124,10 +123,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
               onClick={() => {
                 const added = onAdd(found.words)
                 const full = words.length + added >= MAX_MY_WORDS
-                setMessage(
-                  `Added ${added} new ${added === 1 ? 'word' : 'words'}.` +
-                    (full ? ` Your list is full (${MAX_MY_WORDS} words): remove some to add more.` : ''),
-                )
+                // Only the warning, not "Added N new words".
+                setMessage(full ? `Your list is full (${MAX_MY_WORDS} words): remove some to add more.` : null)
                 setFound(null)
               }}
             >
@@ -139,8 +136,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
           </div>
         </div>
       ) : (
-        // Compact once the list has words: the box and buttons share one row, and the count and "Clear list"
-        // a small line under it (owner's feedback 2026-10-01: the section took up too much space).
+        // Compact once the list has words: the box, the buttons, and the count and "Clear list" at the right,
+        // share one row (owner's feedback 2026-10-01: the section took up too much space).
         <form className={empty ? 'add-word-form' : 'add-word-form compact'} onSubmit={submit} aria-label="Add your words">
           {!full && (
             <label htmlFor={`${id}-words`} className="sr-only">
@@ -148,9 +145,8 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
             </label>
           )}
           <div className="form-row my-words-input">
-            {full ? (
-              <span className="muted my-words-full">Your list is full. Remove a word (✕) to add another.</span>
-            ) : (
+            {/* A full list has no box and no "Your list is full" note (removed 2026-10-30, owner's request). */}
+            {!full && (
               <>
                 <textarea
                   id={`${id}-words`}
@@ -182,37 +178,39 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
               hidden
               onChange={(e) => void upload(e.target.files?.[0])}
             />
+            {/* The count and "Clear list", at the right end of the upload button's row (owner's request
+                2026-10-30; before: a line under it). */}
+            {!empty && (
+              <span className="muted my-words-meta">
+                {words.length} of {MAX_MY_WORDS} words ·{' '}
+                {confirmingClear ? (
+                  <>
+                    Clear all {words.length} words?{' '}
+                    <button
+                      type="button"
+                      className="link danger-link"
+                      onClick={() => {
+                        onReplace([])
+                        setConfirmingClear(false)
+                      }}
+                    >
+                      Clear
+                    </button>{' '}
+                    <button type="button" className="link" onClick={() => setConfirmingClear(false)}>
+                      Keep
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="link danger-link" onClick={() => setConfirmingClear(true)}>
+                    Clear list
+                  </button>
+                )}
+              </span>
+            )}
           </div>
         </form>
       )}
       {message && <p className="muted my-words-status">{message}</p>}
-      {!empty && (
-        <p className="muted my-words-meta">
-          {words.length} of {MAX_MY_WORDS} words ·{' '}
-          {confirmingClear ? (
-            <>
-              Clear all {words.length} words?{' '}
-              <button
-                type="button"
-                className="link danger-link"
-                onClick={() => {
-                  onReplace([])
-                  setConfirmingClear(false)
-                }}
-              >
-                Clear
-              </button>{' '}
-              <button type="button" className="link" onClick={() => setConfirmingClear(false)}>
-                Keep
-              </button>
-            </>
-          ) : (
-            <button type="button" className="link danger-link" onClick={() => setConfirmingClear(true)}>
-              Clear list
-            </button>
-          )}
-        </p>
-      )}
       {/* The Discoverer's way in from the Cheatsheet (owner's request 2026-10-01: here, not in the menu). */}
       <a className="discover-link" href={ROUTE_HREF.discover}>
         <span>

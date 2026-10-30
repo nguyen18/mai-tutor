@@ -1,4 +1,4 @@
-import { use, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { use, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Popover } from '../components/Popover'
 import {
   loadBank,
@@ -26,7 +26,6 @@ import { targetById, useTargetLanguage } from '../lib/languages'
 import { useMyWords } from '../lib/myWords'
 import { useWordEntries } from '../lib/translateWords'
 import { MyWordsControls } from '../components/MyWordsControls'
-import { ROUTE_HREF } from '../lib/useRoute'
 
 export function Cheatsheet() {
   // Suspends until the language's pre-built translations have loaded (App shows a loading message
@@ -44,11 +43,27 @@ export function Cheatsheet() {
   return (
     <main className="app">
       <header className="header">
-        <h1>Cheatsheet</h1>
-        <p className="muted">Handy word lists to keep nearby while you learn.</p>
-        <p className="muted">
-          Translating to <strong>{target.label}</strong> · <a href={ROUTE_HREF.settings}>Change language</a>
-        </p>
+        <div className="page-title-row">
+          <h1>Cheatsheets</h1>
+          {/* The description behind an ⓘ, as on the Journal (owner's request 2026-10-30). */}
+          <Popover
+            title="About the cheatsheets"
+            trigger="i"
+            triggerClassName="page-info"
+            triggerLabel="About the cheatsheets"
+            align="start"
+            wrapClassName="page-info-wrap"
+          >
+            {/* With how to use the lists, moved here from each list (owner's request 2026-10-30). */}
+            <div className="page-intro">
+              <p>Handy word lists to keep nearby while you learn.</p>
+              <p>
+                Tap an English word to choose the meaning you mean; its translation follows. Tap a translation for
+                other options and examples, and star the one you like best.
+              </p>
+            </div>
+          </Popover>
+        </div>
       </header>
 
       <ListCard key={myList.id} list={myList} picks={picks} setPick={setPick} onRemoveEntry={myWords.remove} emptyText="">
@@ -120,7 +135,6 @@ type PronounProps = {
 }
 
 function ListCard({ list, picks, setPick, onRemoveEntry, children, emptyText = 'No words yet. Add your first one below.' }: ListCardProps) {
-  const hasMeanings = list.entries.some((e) => e.meanings.length > 1 || e.meanings[0]?.pos)
   const table = list.pronounTable
   const rowFor = (relation: 'listener' | 'about') => {
     const fallback = relation === 'listener' ? table!.defaultListener : table!.defaultAbout
@@ -158,12 +172,6 @@ function ListCard({ list, picks, setPick, onRemoveEntry, children, emptyText = '
           <span className="cheat-translation">{list.translationLang.label}</span>
         </p>
       )}
-      {hasMeanings && (
-        <p className="cheat-hint muted">
-          Tap an English word to choose the meaning you mean; its translation follows. Tap a translation for other
-          options and examples, and star the one you like best.
-        </p>
-      )}
       {list.entries.length > 0 ? (
         <ol className="cheat-grid">
           {list.entries.map((entry, i) => (
@@ -199,7 +207,37 @@ type RowProps = {
 }
 
 // One word: the English word (its chosen meaning) and the translation for that meaning.
+// What a row steps down through until its word and translation fit on one line (owner's feedback
+// 2026-10-30: "something" → "alguna cosa +1", "lamentablemente" ran past the row; wrapping looked worse):
+// smaller text, then smaller still without the part-of-speech tag (its box still says it), then the
+// translation cut short with "…" (its box has it in full).
+const FIT_STEPS = ['', 'small', 'tiny', 'clip'] as const
+
+/** Shrinks a cheatsheet row's text (data-fit) when it doesn't fit its column, measured after each render
+ *  and when the column's width changes. */
+function useFitRow() {
+  const ref = useRef<HTMLLIElement>(null)
+  const fit = () => {
+    const li = ref.current
+    if (!li) return
+    for (const step of FIT_STEPS) {
+      li.dataset.fit = step
+      if (li.scrollWidth <= li.clientWidth) return
+    }
+  }
+  useLayoutEffect(fit)
+  useEffect(() => {
+    const li = ref.current
+    if (!li) return
+    const observer = new ResizeObserver(() => fit())
+    observer.observe(li)
+    return () => observer.disconnect()
+  }, [])
+  return ref
+}
+
 function Row({ rank, entry, list, picks, setPick, pronoun, onRemove }: RowProps) {
+  const rowRef = useFitRow()
   const mKey = meaningKey(list.id, entry.word)
   // The default meaning is the first one with a translation. A saved pick that no longer exists (data
   // regenerated) falls back to it.
@@ -226,7 +264,7 @@ function Row({ rank, entry, list, picks, setPick, pronoun, onRemove }: RowProps)
     entry.parts && combinedText ? { text: combinedText, formula: entry.parts.map((p) => p.word).join(' + ') } : undefined
 
   return (
-    <li>
+    <li ref={rowRef}>
       <span className="rank">{rank}</span>
       <WordCell
         entry={entry}
