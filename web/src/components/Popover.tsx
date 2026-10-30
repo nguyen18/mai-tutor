@@ -8,7 +8,7 @@ import {
   type FocusEvent,
   type ReactNode,
 } from 'react'
-import { WrongWordButton } from './FeedbackButton'
+import { WrongWordButton } from './WordFeedback'
 
 const GUTTER = 12
 // Must match the mobile media query in App.css, where the box becomes a centered card instead.

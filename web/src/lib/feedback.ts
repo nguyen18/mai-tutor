@@ -40,7 +40,8 @@ export async function shrinkImage(file: File): Promise<File> {
 }
 
 // Opening the feedback form from elsewhere: a word box's "Wrong definition/word?" button (owner's request
-// 2026-10-30) opens it with the sentence started and the word in the ticket's context.
+// 2026-10-30) opens its own pop-up (components/WordFeedback.tsx) with the sentence started and the word
+// in the ticket's context.
 export type FeedbackRequest = { summary: string; context: Record<string, string> }
 const OPEN_EVENT = 'mai:open-feedback'
 
