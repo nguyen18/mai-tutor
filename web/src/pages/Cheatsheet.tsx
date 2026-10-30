@@ -1,4 +1,4 @@
-import { use, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { use, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Popover } from '../components/Popover'
 import {
   loadBank,
@@ -207,7 +207,37 @@ type RowProps = {
 }
 
 // One word: the English word (its chosen meaning) and the translation for that meaning.
+// What a row steps down through until its word and translation fit on one line (owner's feedback
+// 2026-10-30: "something" → "alguna cosa +1", "lamentablemente" ran past the row; wrapping looked worse):
+// smaller text, then smaller still without the part-of-speech tag (its box still says it), then the
+// translation cut short with "…" (its box has it in full).
+const FIT_STEPS = ['', 'small', 'tiny', 'clip'] as const
+
+/** Shrinks a cheatsheet row's text (data-fit) when it doesn't fit its column, measured after each render
+ *  and when the column's width changes. */
+function useFitRow() {
+  const ref = useRef<HTMLLIElement>(null)
+  const fit = () => {
+    const li = ref.current
+    if (!li) return
+    for (const step of FIT_STEPS) {
+      li.dataset.fit = step
+      if (li.scrollWidth <= li.clientWidth) return
+    }
+  }
+  useLayoutEffect(fit)
+  useEffect(() => {
+    const li = ref.current
+    if (!li) return
+    const observer = new ResizeObserver(() => fit())
+    observer.observe(li)
+    return () => observer.disconnect()
+  }, [])
+  return ref
+}
+
 function Row({ rank, entry, list, picks, setPick, pronoun, onRemove }: RowProps) {
+  const rowRef = useFitRow()
   const mKey = meaningKey(list.id, entry.word)
   // The default meaning is the first one with a translation. A saved pick that no longer exists (data
   // regenerated) falls back to it.
@@ -234,7 +264,7 @@ function Row({ rank, entry, list, picks, setPick, pronoun, onRemove }: RowProps)
     entry.parts && combinedText ? { text: combinedText, formula: entry.parts.map((p) => p.word).join(' + ') } : undefined
 
   return (
-    <li>
+    <li ref={rowRef}>
       <span className="rank">{rank}</span>
       <WordCell
         entry={entry}

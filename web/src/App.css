@@ -374,6 +374,32 @@ button.menu-fab[aria-expanded='true'] {
   border-bottom: 1px solid var(--border);
 }
 
+/* A row whose word and translation don't fit its column gets smaller text (useFitRow in Cheatsheet.tsx). */
+.cheat-grid > li[data-fit='small'] {
+  font-size: 0.875rem;
+}
+
+.cheat-grid > li[data-fit='tiny'],
+.cheat-grid > li[data-fit='clip'] {
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.cheat-grid > li:is([data-fit='tiny'], [data-fit='clip']) .pos-tag {
+  display: none;
+}
+
+.cheat-grid > li[data-fit='clip'] .cheat-trans-wrap {
+  min-width: 0;
+}
+
+.cheat-grid > li[data-fit='clip'] .cheat-trans-wrap > button.tip-trigger {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cheat-grid > li > .rank {
   min-width: 1.75rem;
   text-align: right;
