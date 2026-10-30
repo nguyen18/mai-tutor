@@ -61,11 +61,10 @@
   --rule: #2b2d56;
   --photo-frame: #e9e8f5;
   --shade: 0 0 0;
-  --kind-spelling: #5a3a22;
-  --kind-foreign: #534619;
-  --kind-frame: #1f4a30;
-  --kind-dialect: #1d355f;
-  --kind-pronoun: #3f2c5c;
+  /* The correction highlights keep their bright light-mode colours (owner's feedback), so what's written
+     on them uses light mode's ink and red (App.css, after the highlights). */
+  --kind-ink: #23256e;
+  --kind-fix: #c9221d;
   color-scheme: dark;
 }
 
