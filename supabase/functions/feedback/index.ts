@@ -12,11 +12,11 @@
 // still saved). The feedback is saved first, as the user (RLS: supabase/migrations/…_feedback.sql), so
 // nothing is lost if Notion fails. The reporter's email comes from their sign-in, not from the form.
 //
-// The ticket: Name = summary, Status = Not started, Issue = General or Word/definition (from kind), User
-// reported = the email, Assign = the owner (who Notion then notifies); the page holds the details, the
-// image, and the context. Secrets: NOTION_TOKEN
-// (the "Mai feedback" internal integration, connected to the mai tutor page), NOTION_DATA_SOURCE_ID (the
-// "user tickets" board), NOTION_ASSIGNEE_ID (the owner's Notion user id).
+// The ticket: Name = summary, Status = Not started, Issue = General or Word/definition (from kind), with a
+// ⭐ or 🌱 page icon, User reported = the email, Assign = the owner (who Notion then notifies); the page
+// holds the details, the image, and the context. Secrets: NOTION_TOKEN (the "Mai feedback" internal
+// integration, connected to the mai tutor page), NOTION_DATA_SOURCE_ID (the "user tickets" board),
+// NOTION_ASSIGNEE_ID (the owner's Notion user id).
 
 import '@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from '@supabase/supabase-js'
@@ -29,6 +29,8 @@ const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 
 // The ticket's Issue (a select on the board) for each form.
 // The names must match the board's options exactly, or Notion adds new ones.
 const ISSUES: Record<string, string> = { general: 'General', word: 'Word/definition' }
+// The ticket page's icon for each form (owner's request 2026-10-30).
+const ICONS: Record<string, string> = { general: '⭐', word: '🌱' }
 // Tickets a user can send in an hour.
 const HOURLY_LIMIT = 5
 
@@ -103,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   // Then the ticket.
   try {
-    const ticket = await createTicket({ summary, details, image, email: user.email, context, issue: ISSUES[kind] })
+    const ticket = await createTicket({ summary, details, image, email: user.email, context, issue: ISSUES[kind], icon: ICONS[kind] })
     await db.from('feedback').update({ notion_url: ticket }).eq('id', id)
     return json({ id, ticket })
   } catch (e) {
@@ -165,6 +167,7 @@ async function createTicket(f: {
   email: string
   context: Record<string, unknown>
   issue: string
+  icon: string
 }): Promise<string> {
   const imageId = f.image ? await uploadImage(f.image) : null
   const contextLines = Object.entries(f.context)
@@ -190,6 +193,7 @@ async function createTicket(f: {
     method: 'POST',
     body: JSON.stringify({
       parent: { type: 'data_source_id', data_source_id: Deno.env.get('NOTION_DATA_SOURCE_ID') },
+      icon: { type: 'emoji', emoji: f.icon },
       properties: {
         Name: { title: [{ type: 'text', text: { content: f.summary } }] },
         Status: { status: { name: 'Not started' } },
