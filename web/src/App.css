@@ -2608,12 +2608,21 @@ button.sticker-way {
 /* One sheet of paper per entry: the learner's page, then Mai's notes written at the bottom of it, on the
    same continuous grid (the sheet itself is transparent here). Mai's lines sit on the grid's rows. */
 .journal-page {
-  --line: 1.9rem;
+  /* Every journal page has the tall rows that leave room for Mai's corrections above each line: the
+     editor, an unchecked entry and a checked one. With one row height and one top padding, the text
+     lands on the same lines next to its photos in all three (it moved when a checked page had taller
+     rows than the editor). */
+  --line: 2.75rem;
   --kind-spelling: #fde3cf;
   --kind-foreign: #fff0a6;
   --kind-frame: #d9f2df;
   --kind-dialect: #dbe8ff;
   --kind-pronoun: #ece0f8;
+}
+
+/* The sheet sets its own row height (.journal-sheet); on a journal page it takes the tall one too. */
+.journal-page .journal-sheet {
+  --line: 2.75rem;
 }
 
 .entry-paper {
@@ -2678,14 +2687,9 @@ button.sticker-way {
 }
 
 /* Mai's corrections written over the learner's own words, like a teacher's red pen (<ruby>): her word small
-   and red above, tinted by kind; English crossed out in red; other fixes underlined. Pages with corrections
-   get taller grid rows, so there's room above each line. */
-.entry-paper.annotated,
-.entry-paper.annotated .journal-sheet {
-  --line: 2.6rem;
-}
-
-.journal-text.annotated {
+   and red above, tinted by kind; English crossed out in red; other fixes underlined. The rows are tall
+   enough for them (--line on .journal-page). */
+.journal-page .journal-text {
   padding-top: 20px;
 }
 
@@ -2825,13 +2829,6 @@ ruby.fix {
   }
 }
 
-/* The learner's words a little smaller, Mai's corrections a little bigger (owner's feedback); the grid rows
-   grow to keep room above each line. */
-.entry-paper.annotated,
-.entry-paper.annotated .journal-sheet {
-  --line: 2.75rem;
-}
-
 
 .journal-text.annotated .fix-new {
   /* Lifted a little off the word it replaces, so the two don't crowd each other (owner's request
@@ -2963,7 +2960,11 @@ div.audio-bar {
 
   .editor-page .journal-sheet.editing .journal-text {
     min-height: 100%;
-    /* At least 16px, so iPhones don't zoom in when the page is focused. */
+  }
+
+  /* At least 16px, so iPhones don't zoom in when the editor's page is focused; saved pages match it, so
+     the text wraps around photos the same way in both (Mai's corrections are 1em, so they follow). */
+  .journal-page .journal-text {
     font-size: 16px;
   }
 }
