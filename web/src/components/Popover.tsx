@@ -8,6 +8,7 @@ import {
   type FocusEvent,
   type ReactNode,
 } from 'react'
+import { WrongWordButton } from './WordFeedback'
 
 const GUTTER = 12
 // Must match the mobile media query in App.css, where the box becomes a centered card instead.
@@ -39,6 +40,9 @@ type PopoverProps = {
   wrapClassName?: string
   // Changes to this re-measure the box's position (its content changed size).
   contentKey?: string
+  // A word box: ends with "Wrong definition/word?", which closes it and opens the feedback form about the
+  // word (context goes on the ticket).
+  report?: { word: string; context?: Record<string, string> }
   children: ReactNode
 }
 
@@ -54,6 +58,7 @@ export function Popover({
   align = 'end',
   wrapClassName,
   contentKey,
+  report,
   children,
 }: PopoverProps) {
   const [hovered, setHovered] = useState(false)
@@ -154,6 +159,7 @@ export function Popover({
               </button>
             </div>
             {children}
+            {report && <WrongWordButton word={report.word} context={report.context} onOpen={close} />}
           </div>
         </div>
       )}

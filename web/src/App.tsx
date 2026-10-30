@@ -4,6 +4,7 @@ import { Settings } from './pages/Settings'
 import { ROUTE_HREF, useRoute, type Route } from './lib/useRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackButton } from './components/FeedbackButton'
+import { WordFeedbackDialog } from './components/WordFeedback'
 import { startSync } from './lib/sync'
 import './App.css'
 
@@ -36,6 +37,7 @@ function App() {
       {/* Keyed by route so the menu starts closed on every page, including after Back. */}
       <SiteMenu key={route} route={route} />
       <FeedbackButton raised={route === 'discover'} />
+      <WordFeedbackDialog />
       {route === 'discover' ? (
         <Discoverer />
       ) : route === 'cheatsheet' ? (

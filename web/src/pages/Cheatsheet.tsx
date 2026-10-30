@@ -341,6 +341,7 @@ function WordCell({ entry, meaning, defaultId, onPick }: WordCellProps) {
           )}
         </>
       }
+      report={{ word: entry.word, context: { language: 'en', meaning: meaning.gloss ?? '' } }}
     >
       <div className="tip-options" role="group" aria-label={`Meanings of “${entry.word}”`}>
         <p className="tip-note-label">
@@ -423,6 +424,7 @@ function TranslationCell({
         contentKey={`${meaning.id}|${row.id}|${pronoun.speaker ?? ''}`}
         triggerLabel={`${text}, depends on who you're talking ${pronoun.role.relation === 'about' ? 'about' : 'to'}`}
         trigger={text}
+        report={{ word: text, context: { language: lang ?? '', english: word } }}
       >
         <PronounTableView pronoun={pronoun} role={pronoun.role} lang={lang} />
       </Popover>
@@ -486,6 +488,10 @@ function TranslationCell({
           '—'
         )
       }
+      report={{
+        word: picked?.text ?? word,
+        context: { language: lang ?? '', english: word, meaning: meaning.gloss ?? '' },
+      }}
     >
       {meaningLine}
       {picked ? (

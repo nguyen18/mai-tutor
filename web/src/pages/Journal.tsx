@@ -482,6 +482,7 @@ function ChangeMark({ change, original, shown, onPick, target }: ChangeMarkProps
       lang={lang}
       align="start"
       contentKey={shown}
+      report={{ word: shown || change.from, context: { language: lang, written: change.from, change: change.kind } }}
     >
       <p className="change-why">
         <span className="change-kind" data-kind={kind.color}>
@@ -717,6 +718,7 @@ function WordMark({ word, pick, onPick, target }: WordMarkProps) {
       lang={target.code}
       align="start"
       contentKey={shown}
+      report={{ word: shown, context: { language: target.code, written: word } }}
     >
       <WordAlternativesBox word={word} shown={shown} onPick={onPick} target={target} />
     </Popover>
