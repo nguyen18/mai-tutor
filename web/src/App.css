@@ -2310,6 +2310,13 @@ button.tip-trigger.page-info[aria-expanded='true'] {
   padding: 6px 12px;
 }
 
+/* A future date can't be saved (owner's request 2026-10-30). */
+.editor-date-error {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
 .editor-date .journal-when {
   padding: 2px 0;
   border: none;
