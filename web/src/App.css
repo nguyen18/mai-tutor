@@ -507,7 +507,7 @@ button.tip-trigger:focus-visible {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(35 37 110 / 0.16);
+  box-shadow: 0 8px 24px rgb(var(--shade) / 0.16);
   text-align: left;
 }
 
@@ -660,7 +660,7 @@ button.tip-option:focus-visible {
     position: fixed;
     inset: 0;
     z-index: 40;
-    background: rgb(35 37 110 / 0.35);
+    background: rgb(var(--shade) / 0.35);
     /* iOS Safari only sends click events to elements that look clickable. */
     cursor: pointer;
   }
@@ -1099,6 +1099,11 @@ button.pronoun-star {
   cursor: pointer;
 }
 
+/* The chevron is a picture, so it can't follow --text: a pale one in dark mode. */
+:root[data-theme='dark'] .language-picker select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23e4e4fb' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
 .language-picker select:hover {
   border-color: var(--accent);
 }
@@ -1277,13 +1282,13 @@ a.discover-link:hover {
   overflow: hidden;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background-color: #fffefb;
+  background-color: var(--paper);
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
     transparent calc(var(--line) - 1px),
-    #e6e6f4 calc(var(--line) - 1px),
-    #e6e6f4 var(--line)
+    var(--rule) calc(var(--line) - 1px),
+    var(--rule) var(--line)
   );
   background-position: 0 14px;
   touch-action: pan-y;
@@ -1335,13 +1340,13 @@ textarea.journal-text:focus {
 }
 
 .sheet-item.photo img {
-  border: 6px solid #fff;
+  border: 6px solid var(--photo-frame);
   border-bottom-width: 18px;
-  box-shadow: 0 2px 8px rgba(35, 37, 110, 0.25);
+  box-shadow: 0 2px 8px rgb(var(--shade) / 0.25);
 }
 
 .sheet-item.sticker img {
-  filter: drop-shadow(0 2px 3px rgba(35, 37, 110, 0.3));
+  filter: drop-shadow(0 2px 3px rgb(var(--shade) / 0.3));
 }
 
 .journal-sheet.editing .sheet-item {
@@ -1366,7 +1371,7 @@ textarea.journal-text:focus {
   line-height: 1;
   color: var(--on-accent);
   background: var(--accent);
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: 50%;
   touch-action: none;
 }
@@ -1572,7 +1577,7 @@ button.chip.danger {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(35, 37, 110, 0.35);
+  background: rgb(var(--shade) / 0.35);
 }
 
 .modal {
@@ -1582,7 +1587,7 @@ button.chip.danger {
   padding: 20px;
   background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(35, 37, 110, 0.3);
+  box-shadow: 0 10px 40px rgb(var(--shade) / 0.3);
 }
 
 .modal h2 {
@@ -1639,16 +1644,8 @@ button.chip.danger {
   gap: 2px;
 }
 
-/* Journal corrections: one corrected line per sentence, changed words tinted by kind of change.
+/* Journal corrections: changed words tinted by kind of change (the --kind-* colours are in index.css).
    The text stays red (Mai's copy); the tint says what kind of fix it was. */
-.journal-correction {
-  --kind-spelling: #fde3cf;
-  --kind-foreign: #fff0a6;
-  --kind-frame: #d9f2df;
-  --kind-dialect: #dbe8ff;
-  --kind-pronoun: #ece0f8;
-}
-
 [data-kind='spelling'],
 .kind-spelling .change-mark {
   background: var(--kind-spelling);
@@ -2212,7 +2209,7 @@ button.tip-trigger.page-info[aria-expanded='true'] {
   height: 18px;
   transform: translateX(-50%) rotate(-3deg);
   background: color-mix(in srgb, var(--blush) 80%, transparent);
-  box-shadow: 0 1px 2px rgb(35 37 110 / 0.12);
+  box-shadow: 0 1px 2px rgb(var(--shade) / 0.12);
 }
 
 .journal-page .sheet-item.photo img {
@@ -2652,11 +2649,6 @@ button.sticker-way {
      lands on the same lines next to its photos in all three (it moved when a checked page had taller
      rows than the editor). */
   --line: 2.75rem;
-  --kind-spelling: #fde3cf;
-  --kind-foreign: #fff0a6;
-  --kind-frame: #d9f2df;
-  --kind-dialect: #dbe8ff;
-  --kind-pronoun: #ece0f8;
 }
 
 /* The sheet sets its own row height (.journal-sheet); on a journal page it takes the tall one too. */
@@ -3310,4 +3302,22 @@ button.sign-in-nudge-close {
   body.journal-editing .sign-in-nudge {
     display: none;
   }
+}
+
+/* Settings' Appearance: Device, Light or Dark (lib/theme.ts). */
+.theme-choice {
+  display: flex;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theme-choice button.chip {
+  padding: 4px 14px;
+}
+
+.theme-choice button.chip.selected {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
 }

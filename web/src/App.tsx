@@ -7,6 +7,7 @@ import { FeedbackButton } from './components/FeedbackButton'
 import { WordFeedbackDialog } from './components/WordFeedback'
 import { SignInNudge } from './components/SignInNudge'
 import { startSync } from './lib/sync'
+import { useApplyTheme } from './lib/theme'
 import './App.css'
 
 // The Cheatsheet carries ~100 KB of dictionary data, so it loads only when opened.
@@ -22,6 +23,7 @@ const MENU_ITEMS: { route: Route; label: string }[] = [
 
 function App() {
   const route = useRoute()
+  useApplyTheme()
 
   // Syncing with the user's account, when they're signed in. The Supabase client loads in the background.
   useEffect(() => {
