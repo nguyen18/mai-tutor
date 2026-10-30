@@ -1998,9 +1998,10 @@ button.icon-button.new-entry-fab {
   top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
   z-index: 25;
-  width: 52px;
-  height: 52px;
-  font-size: 1.6rem;
+  /* A little smaller than the ☰ menu's 52px (owner's request 2026-10-30). */
+  width: 46px;
+  height: 46px;
+  font-size: 1.45rem;
 }
 
 @media (max-width: 600px) {
@@ -2819,8 +2820,16 @@ ruby.fix {
   border: 1.5px solid var(--ink);
 }
 
+/* ✎ and 🗑 faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
 .entry-tools .icon-button.small {
   font-size: 0.95rem;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+
+.entry-tools .icon-button.small:hover,
+.entry-tools .icon-button.small:focus-visible {
+  opacity: 1;
 }
 
 /* The floating menu needs room under each page's last line. */
