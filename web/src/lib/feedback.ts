@@ -39,8 +39,28 @@ export async function shrinkImage(file: File): Promise<File> {
   }
 }
 
+// Opening the feedback form from elsewhere: a word box's "Wrong definition/word?" button (owner's request
+// 2026-10-30) opens it with the sentence started and the word in the ticket's context.
+export type FeedbackRequest = { summary: string; context: Record<string, string> }
+const OPEN_EVENT = 'mai:open-feedback'
+
+export function openFeedback(request: FeedbackRequest) {
+  window.dispatchEvent(new CustomEvent<FeedbackRequest>(OPEN_EVENT, { detail: request }))
+}
+
+export function onOpenFeedback(listener: (request: FeedbackRequest) => void): () => void {
+  const handle = (e: Event) => listener((e as CustomEvent<FeedbackRequest>).detail)
+  window.addEventListener(OPEN_EVENT, handle)
+  return () => window.removeEventListener(OPEN_EVENT, handle)
+}
+
 /** Sends the feedback; resolves with the ticket's URL (null if the ticket is still to be made), throws with a message to show. */
-export async function sendFeedback(feedback: { summary: string; details: string; image: File | null }): Promise<string | null> {
+export async function sendFeedback(feedback: {
+  summary: string
+  details: string
+  image: File | null
+  context?: Record<string, string>
+}): Promise<string | null> {
   const client = await supabase()
   const { data } = await client.auth.getSession()
   const token = data.session?.access_token
@@ -53,6 +73,7 @@ export async function sendFeedback(feedback: { summary: string; details: string;
   form.append(
     'context',
     JSON.stringify({
+      ...feedback.context,
       page: window.location.hash || '#/',
       screen: `${window.innerWidth}×${window.innerHeight}`,
       browser: navigator.userAgent,

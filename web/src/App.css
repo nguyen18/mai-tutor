@@ -3231,3 +3231,20 @@ button.feedback-attach {
     box-shadow: 0 -3px 0 var(--text);
   }
 }
+
+/* "Wrong definition/word?" at the bottom of a word box (WrongWordButton in components/FeedbackButton.tsx):
+   small and quiet, on the right. */
+.tip-box button.link.wrong-word {
+  display: block;
+  margin: 10px 0 0 auto;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* The journal editor hides the 💬 button on a phone, but a word box there can still open the form. */
+@media (max-width: 600px) {
+  body.journal-editing .feedback:has(.feedback-panel) {
+    display: block;
+  }
+}
