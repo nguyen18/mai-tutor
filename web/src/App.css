@@ -1889,7 +1889,7 @@ button.tip-trigger.word-mark.picked {
 
 /* =========================================================================================================
    Journal, zine style (owner's reference: Daplit, 2026-10-01): graph paper, thin ink lines and square
-   corners, Playpen Sans headings framed by slashes, tape on photos. Only the journal uses this look.
+   corners, Space Grotesk headings framed by slashes, tape on photos. Only the journal uses this look.
    ========================================================================================================= */
 .journal-page {
   --ink: var(--text);
@@ -2006,15 +2006,47 @@ button.icon-button.new-entry-fab {
   }
 }
 
-.journal-intro {
-  margin: 8px 0 0;
-  font-size: 0.9rem;
-  color: var(--muted);
+/* ⓘ next to the Journal title; its box holds the intro. */
+.journal-info-wrap {
+  position: relative;
+  margin-right: auto;
 }
 
-.journal-empty {
-  margin-top: 20px;
+button.tip-trigger.journal-info {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  /* 700 is Space Grotesk's heaviest; the stroke thickens the tiny i a little more. */
+  -webkit-text-stroke: 0.4px currentColor;
+  line-height: 1;
   color: var(--muted);
+  border: 1.2px solid currentColor;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+/* Small to look at, but a finger-sized area to tap. */
+button.tip-trigger.journal-info::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+button.tip-trigger.journal-info[aria-expanded='true'] {
+  color: var(--ink);
+}
+
+.journal-intro {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.tip-box .journal-intro p + p {
+  margin-top: 8px;
 }
 
 .journal-page .journal-new {

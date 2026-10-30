@@ -127,12 +127,26 @@ export function Journal() {
         <header className="journal-top">
           <div className="journal-title-row">
             <h1 className="slashed">Journal</h1>
+            {/* The how-to sits behind an ⓘ next to the title: hover on a computer, tap on a phone. */}
+            <Popover
+              title="How the journal works"
+              trigger="i"
+              triggerClassName="journal-info"
+              triggerLabel="How the journal works"
+              align="start"
+              wrapClassName="journal-info-wrap"
+            >
+              <div className="journal-intro">
+                <p>
+                  Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
+                </p>
+                <p>
+                  Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
+                  are red.
+                </p>
+              </div>
+            </Popover>
           </div>
-          <p className="journal-intro">
-            Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>. 
-            <p></p> Stuck on a word? Write it in English and Mai fills
-            it in: your words stay blue, Mai's notes are red.
-          </p>
           <HighlightKey extraChecks={extraChecks} target={target} />
         </header>
 
@@ -158,14 +172,7 @@ export function Journal() {
 
         {entries === null ? (
           <p className="muted">Loading your journal…</p>
-        ) : entries.length === 0 ? (
-          !editing && (
-            <p className="journal-empty">
-              No entries yet. Write one, or record an audio note and type out what you said: typed words are what Mai
-              can check.
-            </p>
-          )
-        ) : (
+        ) : entries.length === 0 ? null : (
           <ol className="journal-list">
             {entries
               .filter((e) => e.id !== editing?.entry?.id)
