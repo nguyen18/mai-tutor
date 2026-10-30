@@ -2080,6 +2080,8 @@ button.tip-trigger.journal-info[aria-expanded='true'] {
   list-style: none;
   background: var(--surface);
   border: 1.5px solid var(--ink);
+  /* Rounded corners (owner's request 2026-10-30); the graph paper sits 14px inside, so nothing pokes out. */
+  border-radius: 12px;
 }
 
 .journal-entry > :not(.entry-head) {
