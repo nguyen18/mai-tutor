@@ -8,10 +8,13 @@ import type { SheetItem } from './journal'
 // Stickers wrap along their cut-out outline (shape-outside: polygon, from the image's see-through pixels);
 // photos as rectangles. Rotation isn't followed: the upright shape is used.
 
-// Space kept between a picture and the text, and room for a caption under it.
+// Space kept beside a picture. Above and below, the text comes closer (owner's feedback 2026-10-30: the
+// wrap was loose there): a line is pushed aside only when the picture reaches past EDGE_INSET into it, since
+// the top and bottom of a line are empty leading, not letters. A caption is wrapped by its measured height
+// (it was a flat 38px, more than a one-line caption needs), with CAPTION_GAP under it.
 const GAP_X = 10
-const GAP_Y = 6
-const CAPTION = 38
+const EDGE_INSET = 5
+const CAPTION_GAP = 2
 // A photo's frame, which its size doesn't include. None since photos lost their white border (2026-10-01).
 const PHOTO_FRAME = { x: 0, y: 0 }
 // Rows the sticker outline is measured in.
@@ -86,7 +89,8 @@ export function wrapFloats(
   items: SheetItem[],
   width: number,
   outlineOf: (item: SheetItem) => Outline | undefined,
-  withCaption: (item: SheetItem) => boolean,
+  /** How far the picture's caption reaches below it, in px (0 for none). */
+  captionHeight: (item: SheetItem) => number,
   /** Space kept clear in the page's top-right corner (the entry's ✎ and 🗑 buttons sit there). */
   corner?: { width: number; height: number },
 ): WrapFloat[] {
@@ -111,8 +115,9 @@ export function wrapFloats(
     const x = item.x * width - (w - item.w * width) / 2
     const yTop = item.y * width - (h - h0) / 2
     const side = x + w / 2 < width / 2 ? 'left' : 'right'
-    const top = Math.max(0, yTop - GAP_Y)
-    const height = h + GAP_Y * 2 + (withCaption(item) ? CAPTION : 0)
+    const top = Math.max(0, yTop + EDGE_INSET)
+    const caption = captionHeight(item)
+    const height = Math.max(0, (caption ? yTop + h + caption + CAPTION_GAP : yTop + h - EDGE_INSET) - top)
     // The spacer starts where its side's last picture ended (or the previous float's top, if lower).
     const start = Math.max(bottom[side], lastTop)
     const push = Math.max(0, top - start)
@@ -124,7 +129,8 @@ export function wrapFloats(
       side,
       width: floatWidth,
       height,
-      shape: item.kind === 'sticker' ? stickerShape(outlineOf(item), side, x, w, h, floatWidth, height) : undefined,
+      shape:
+        item.kind === 'sticker' ? stickerShape(outlineOf(item), side, x, w, h, yTop - top, floatWidth, height) : undefined,
     })
     bottom[side] = floatTop + height
     lastTop = floatTop
@@ -140,6 +146,8 @@ function stickerShape(
   x: number,
   w: number,
   h: number,
+  /** Where the sticker's top is in the float's box (negative: above it). */
+  offset: number,
   floatWidth: number,
   height: number,
 ): string | undefined {
@@ -154,7 +162,8 @@ function stickerShape(
   const rowHeight = h / outline.length
   outline.forEach((row, i) => {
     const e = Math.max(0, Math.min(floatWidth, edge(row)))
-    points.push([e, GAP_Y + i * rowHeight], [e, GAP_Y + (i + 1) * rowHeight])
+    const clampY = (y: number) => Math.max(0, Math.min(height, y))
+    points.push([e, clampY(offset + i * rowHeight)], [e, clampY(offset + (i + 1) * rowHeight)])
   })
   // Above and below the sticker (and its caption): the whole box.
   const full = side === 'left' ? floatWidth : 0
