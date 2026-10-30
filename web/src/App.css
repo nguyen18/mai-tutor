@@ -2984,10 +2984,11 @@ div.audio-bar {
     min-height: 100%;
   }
 
-  /* At least 16px, so iPhones don't zoom in when the editor's page is focused; saved pages match it, so
-     the text wraps around photos the same way in both (Mai's corrections are 1em, so they follow). */
+  /* A little smaller than 16px (owner's request 2026-10-30); iPhones would zoom in on a text box under
+     16px, which index.html stops there (maximum-scale). Saved pages match the editor, so the text wraps
+     around photos the same way in both (Mai's corrections are 1em, so they follow). */
   .journal-page .journal-text {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
