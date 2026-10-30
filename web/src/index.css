@@ -56,7 +56,7 @@
   --translation: #ff8f85;
   --grid: #222448;
   --danger: #ff7389;
-  --writing: #ffffff;
+  --writing: var(--text);
   --paper: #191a36;
   --rule: #2b2d56;
   --photo-frame: #e9e8f5;
