@@ -108,29 +108,9 @@ export function Journal() {
 
   return (
     <main className="journal-page">
-      {/* The top-right corner (owner's request 2026-10-30: no page title, the ⓘ moved here, left of ＋): fixed
-          on a computer, at the top of the page on a phone (App.css). The editor opens at the top of the page,
-          so ＋ scrolls the page up to it; while editing, only the ⓘ shows. */}
+      {/* New entry, in the top-right corner: fixed on a computer, at the top of the page on a phone (App.css).
+          The editor opens at the top of the page, so the page scrolls up to it. */}
       <div className="journal-corner">
-        {/* The how-to sits behind the ⓘ: hover on a computer, tap on a phone. */}
-        <Popover
-          title="How the journal works"
-          trigger="i"
-          triggerClassName="page-info"
-          triggerLabel="How the journal works"
-          align="end"
-          wrapClassName="page-info-wrap"
-        >
-          <div className="page-intro">
-            <p>
-              Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
-            </p>
-            <p>
-              Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
-              are red.
-            </p>
-          </div>
-        </Popover>
         {!editing && (
           <button
             type="button"
@@ -150,7 +130,32 @@ export function Journal() {
         <header className="journal-top">
           {/* No visible title (owner's request): the page's heading is for screen readers. */}
           <h1 className="sr-only">Journal</h1>
-          <HighlightKey extraChecks={extraChecks} target={target} />
+          {/* The how-to sits behind an ⓘ at the end of the highlight key (owner's request 2026-10-30, with the
+              page title gone): hover on a computer, tap on a phone. */}
+          <HighlightKey
+            extraChecks={extraChecks}
+            target={target}
+            info={
+              <Popover
+                title="How the journal works"
+                trigger="i"
+                triggerClassName="page-info"
+                triggerLabel="How the journal works"
+                align="start"
+                wrapClassName="page-info-wrap"
+              >
+                <div className="page-intro">
+                  <p>
+                    Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>.
+                  </p>
+                  <p>
+                    Stuck on a word? Write it in English and Mai fills it in: your words stay blue, Mai's notes
+                    are red.
+                  </p>
+                </div>
+              </Popover>
+            }
+          />
         </header>
 
         {error && <p className="error">{error}</p>}
@@ -802,8 +807,8 @@ function WordAlternativesBox({ word, shown, onPick, target, tag = 'your word', s
 
 // The page's highlighter key, under its description: what each tint in Mai's notes means. The regional
 // word and pronoun tints only appear when those checks are on (Settings), and frame and pronoun tints only
-// for languages that have them.
-function HighlightKey({ extraChecks, target }: { extraChecks: boolean; target: TargetLanguage }) {
+// for languages that have them. `info` (the page's ⓘ) follows the last one.
+function HighlightKey({ extraChecks, target, info }: { extraChecks: boolean; target: TargetLanguage; info: ReactNode }) {
   const kinds = [
     'spelling',
     'foreign-word',
@@ -817,6 +822,8 @@ function HighlightKey({ extraChecks, target }: { extraChecks: boolean; target: T
           {kindOf(k).label}
         </li>
       ))}
+      {/* Last in the row, however many highlights there are. */}
+      <li className="legend-info">{info}</li>
     </ul>
   )
 }
