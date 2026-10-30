@@ -210,6 +210,21 @@ export function useSyncStatus(): SyncStatus {
   )
 }
 
+// Whether someone is signed in on this device, once startup has asked ('unknown' until then; the status
+// above says signed-out meanwhile, so it can't tell). For the "sign in" reminder (SignInNudge).
+let account: 'unknown' | 'signed-in' | 'signed-out' = 'unknown'
+
+/** True once startup has found that no one is signed in (false while it's still checking). */
+export function useSignedOut(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      statusListeners.add(onChange)
+      return () => statusListeners.delete(onChange)
+    },
+    () => account === 'signed-out',
+  )
+}
+
 let running = false
 let again = false
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -259,8 +274,12 @@ export async function startSync() {
   })
   if (!client) return
   client.auth.onAuthStateChange((event, session) => {
+    account = session ? 'signed-in' : 'signed-out'
     if (!session) setStatus({ state: 'signed-out' })
-    else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') requestSync()
+    else {
+      for (const listener of statusListeners) listener()
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') requestSync()
+    }
   })
   // A local change waits a moment, so a burst of typing or edits is one sync.
   onLocalChange(() => requestSync(2000))
