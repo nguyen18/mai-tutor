@@ -45,13 +45,13 @@ export function Cheatsheet() {
     <main className="app">
       <header className="header">
         <div className="page-title-row">
-          <h1>Cheatsheet</h1>
+          <h1>Cheatsheets</h1>
           {/* The description behind an ⓘ, as on the Journal (owner's request 2026-10-30). */}
           <Popover
-            title="About the cheatsheet"
+            title="About the cheatsheets"
             trigger="i"
             triggerClassName="page-info"
-            triggerLabel="About the cheatsheet"
+            triggerLabel="About the cheatsheets"
             align="start"
             wrapClassName="page-info-wrap"
           >

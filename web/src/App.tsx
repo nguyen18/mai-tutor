@@ -14,7 +14,7 @@ const Journal = lazy(() => import('./pages/Journal').then((m) => ({ default: m.J
 
 const MENU_ITEMS: { route: Route; label: string }[] = [
   { route: 'journal', label: 'Journal' },
-  { route: 'cheatsheet', label: 'Cheatsheet' },
+  { route: 'cheatsheet', label: 'Cheatsheets' },
   { route: 'settings', label: 'Settings' },
 ]
 
