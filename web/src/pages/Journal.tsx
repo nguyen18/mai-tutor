@@ -107,15 +107,26 @@ export function Journal() {
 
   return (
     <main className="journal-page">
+      {/* In the top-right corner: fixed on a computer, at the top of the page on a phone (App.css). The
+          editor opens at the top of the page, so the page scrolls up to it. */}
+      {!editing && (
+        <button
+          type="button"
+          className="icon-button new-entry-fab"
+          aria-label="New entry"
+          title="New entry"
+          onClick={() => {
+            setEditing({})
+            window.scrollTo(0, 0)
+          }}
+        >
+          ＋
+        </button>
+      )}
       <div className="journal-inner">
         <header className="journal-top">
           <div className="journal-title-row">
             <h1 className="slashed">Journal</h1>
-            {!editing && (
-              <button type="button" className="icon-button" aria-label="New entry" title="New entry" onClick={() => setEditing({})}>
-                ＋
-              </button>
-            )}
           </div>
           <p className="journal-intro">
             Write about your favorite topics, feelings or your day in <strong>{target.label}</strong>. 
