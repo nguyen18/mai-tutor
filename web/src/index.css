@@ -19,6 +19,8 @@
   /* A journal page's paper and its ruled lines. */
   --paper: #fffefb;
   --rule: #e6e6f4;
+  /* The strip of tape on a photo. */
+  --tape: var(--blush);
   /* A photo's white border. */
   --photo-frame: #ffffff;
   /* The ink's colour as RGB channels, for see-through shadows and backdrops: rgb(var(--shade) / 0.3). */
@@ -57,6 +59,7 @@
   --grid: #222448;
   --danger: #ff7389;
   --writing: var(--text);
+  --tape: var(--text);
   --paper: #191a36;
   --rule: #2b2d56;
   --photo-frame: #e9e8f5;

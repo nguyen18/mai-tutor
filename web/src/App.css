@@ -2205,7 +2205,7 @@ button.tip-trigger.page-info[aria-expanded='true'] {
   outline-color: var(--accent);
 }
 
-/* Photos are taped on: a strip of blush tape across the top */
+/* Photos are taped on: a strip of tape across the top (blush; pale lavender in dark mode, --tape) */
 .sheet-item.photo::before {
   content: '';
   position: absolute;
@@ -2215,7 +2215,7 @@ button.tip-trigger.page-info[aria-expanded='true'] {
   width: 40%;
   height: 18px;
   transform: translateX(-50%) rotate(-3deg);
-  background: color-mix(in srgb, var(--blush) 80%, transparent);
+  background: color-mix(in srgb, var(--tape) 80%, transparent);
   box-shadow: 0 1px 2px rgb(var(--shade) / 0.12);
 }
 
