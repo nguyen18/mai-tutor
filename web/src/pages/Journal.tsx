@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { AudioNotePlayer } from '../components/AudioNoteRecorder'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { JournalEditor } from '../components/JournalEditor'
 import { JournalSheet } from '../components/JournalSheet'
 import { backendConfigured } from '../lib/backend'
@@ -234,27 +235,23 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
       <div className={check ? 'entry-paper annotated' : 'entry-paper'}>
         {/* The audio note's bar, then edit and delete, along the bottom of the page under the text. */}
         <div className={entry.audio ? 'entry-tools with-audio' : 'entry-tools'}>
-          {entry.audio && !confirming && <AudioNotePlayer audio={entry.audio} bare />}
-          {confirming ? (
-            <span className="journal-confirm">
-              <button type="button" className="chip danger" onClick={onDelete}>
-                Delete
-              </button>{' '}
-              <button type="button" className="chip" onClick={() => setConfirming(false)}>
-                Keep
-              </button>
-            </span>
-          ) : (
-            <>
-              <button type="button" className="icon-button small" aria-label="Edit entry" title="Edit" onClick={onEdit}>
-                ✎
-              </button>
-              <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
-                🗑
-              </button>
-            </>
-          )}
+          {entry.audio && <AudioNotePlayer audio={entry.audio} bare />}
+          <button type="button" className="icon-button small" aria-label="Edit entry" title="Edit" onClick={onEdit}>
+            ✎
+          </button>
+          <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
+            🗑
+          </button>
         </div>
+        {confirming && (
+          <ConfirmDialog
+            title="Delete this entry?"
+            message="Are you sure? It can't be undone."
+            confirmLabel="Delete"
+            onConfirm={onDelete}
+            onCancel={() => setConfirming(false)}
+          />
+        )}
         {(entry.text || entry.items.length > 0) && (
           <JournalSheet
             text={entry.text}

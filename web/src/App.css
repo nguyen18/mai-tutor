@@ -1542,10 +1542,6 @@ textarea.journal-text:focus {
   margin-top: 16px;
 }
 
-.journal-confirm {
-  font-size: 0.9rem;
-}
-
 button.chip.danger {
   color: var(--on-accent);
   background: var(--danger);
@@ -1575,6 +1571,24 @@ button.chip.danger {
 .modal h2 {
   margin: 0 0 8px;
   font-size: 1.15rem;
+}
+
+/* ConfirmDialog: a small "are you sure?" card. */
+.modal.confirm-dialog {
+  width: min(320px, 100%);
+  border: 1.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.confirm-dialog p {
+  margin: 0;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 /* Sized by its picture's shape (no object-fit), so pointer positions map straight onto the picture. */
@@ -2812,13 +2826,6 @@ ruby.fix {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.entry-tools .journal-confirm {
-  padding: 4px 6px;
-  font-size: 0.85rem;
-  background: var(--surface);
-  border: 1.5px solid var(--ink);
 }
 
 /* ✎ and 🗑 faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
