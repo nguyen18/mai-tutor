@@ -1874,11 +1874,15 @@ button.frame-option {
 }
 
 .other-meanings ul {
-  margin: 6px 0 0;
-  padding: 0;
+  /* Room for each option's full-bleed hover background (8px past the text on each side), which scrolled
+     the list sideways when it reached past the list's box (owner's feedback 2026-10-31). */
+  margin: 6px -8px 0;
+  padding: 0 8px;
   list-style: none;
   max-height: 240px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overflow-wrap: anywhere;
 }
 
 /* These meanings have no star, so the word type takes the first column instead of
@@ -1958,56 +1962,52 @@ button.tip-trigger.word-mark.picked {
   padding: 20px 16px 96px;
 }
 
-/* On a computer every page fills the screen's width (owner's request 2026-10-29: the journal first, then
-   all pages), with room on the left for the floating 💬 and ☰ buttons and the same on the right. In the
-   journal, photos and stickers grow with it: they're sized in fractions of the sheet's width. */
+/* On a computer every page keeps to one column in the middle (owner's requests 2026-10-31: the journal
+   first, then every page). It was the screen's full width (2026-10-29), but pictures are sized in fractions
+   of the page's width and the writing isn't, so on a wide page they grew far past the text they sat beside
+   on a phone. The column's journal page is at most twice a phone's, so a picture is never more than double
+   its size next to the words: a phone's page is 363px (an iPhone's 390px, less the journal's 12px sides and
+   the entry's 1.5px borders), and the column adds the borders back. Every other page takes the same column,
+   and on the journal the month picker and highlight key line up with the entries' left edge. */
 :root {
   --page-width: min(680px, 100vw - 32px);
 }
 
 @media (min-width: 900px) {
   :root {
-    --page-width: calc(100vw - 176px);
+    --column: calc(2 * 363px + 3px);
+    /* The column's left edge, from the screen's. */
+    --column-left: calc(50% - var(--column) / 2);
+    --page-width: var(--column);
   }
 
   .app,
   .journal-inner {
-    max-width: none;
-    padding-inline: 88px;
+    max-width: var(--column);
+    padding-inline: 0;
   }
 
-  /* Pictures are sized in fractions of the page's width but the writing isn't, so on a wide page they grew
-     past the text they sat beside on a phone. Entries and the editor keep to a column whose page is at most
-     twice a phone's, so a picture is never more than double its size next to the words (owner's request
-     2026-10-31). A phone's page is 363px (an iPhone's 390px, less the journal's 12px sides and the entry's
-     1.5px borders); the column adds the borders back. The month picker and highlight key keep to it too,
-     lined up with the entries' left edge. */
-  :root {
-    --journal-col: calc(2 * 363px + 3px);
-    /* The column's left edge, from the screen's. */
-    --journal-col-left: calc(50% - var(--journal-col) / 2);
-  }
-
-  .journal-inner > * {
-    max-width: var(--journal-col);
-    margin-inline: auto;
-  }
-
-  /* The floating buttons stay near the column rather than out at the screen's corners (owner's request
-     2026-10-31): ＋ at most 32px right of it; ☰, 💬 and the sign-in reminder end at most 32px left of it, so
-     they line up on their right edges. Those three cast a 3px shadow to the right, counted in their 32px, so
-     both sides' gaps look the same. Still 16px from the screen's edge at the least. */
+  /* The floating buttons stay near the column rather than out at the screen's corners (owner's requests
+     2026-10-31): the journal's ＋ at most 32px right of it; ☰, 💬 and the sign-in reminder end at most 32px
+     left of it, so they line up on their right edges. Those three cast a 3px shadow to the right, counted in
+     their 32px, so both sides' gaps look the same. Still 16px from the screen's edge at the least. */
   .journal-page .journal-corner {
-    right: max(16px, env(safe-area-inset-right), calc(var(--journal-col-left) - 32px - 46px));
+    right: max(16px, env(safe-area-inset-right), calc(var(--column-left) - 32px - 46px));
   }
 
-  :root:has(.journal-page) .site-menu,
-  :root:has(.journal-page) .feedback {
-    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 3px - 52px));
+  /* :root, so these win over the buttons' own rules further down. */
+  :root .site-menu,
+  :root .feedback {
+    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - 52px));
   }
 
-  :root:has(.journal-page) .sign-in-nudge {
-    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 3px - 260px));
+  /* The reminder narrows (to 170px at the least) to fit between the screen's edge and the column rather
+     than reaching over the page; only on a screen too narrow even for that does it overlap the column's
+     edge. */
+  :root .sign-in-nudge {
+    --nudge-width: clamp(170px, calc(var(--column-left) - 32px - 3px - 16px), 260px);
+    width: var(--nudge-width);
+    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - var(--nudge-width)));
   }
 }
 
