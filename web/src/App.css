@@ -1306,8 +1306,7 @@ a.discover-link:hover {
   display: block;
   width: 100%;
   margin: 0;
-  /* Close to the page's sides (owner's feedback 2026-10-31: the lines stopped well short of them). */
-  padding: 14px 8px 24px;
+  padding: 14px 18px 24px;
   font: inherit;
   /* The same size as Mai's corrections over the words (owner's requests 2026-10-30). */
   font-size: 0.9rem;
@@ -1978,11 +1977,12 @@ button.tip-trigger.word-mark.picked {
   }
   /* Pictures are sized in fractions of the page's width but the writing isn't, so on a wide page they grew
      past the text they sat beside on a phone. Entries and the editor keep to a column whose page is at most
-     twice a phone's (an iPhone's is 343px), so a picture is never more than double its size next to the
-     words (owner's request 2026-10-31). The column adds the entry's 14px margins and 1.5px borders. The
+     twice a phone's, so a picture is never more than double its size next to the
+     words (owner's request 2026-10-31). A phone's page is 363px (an iPhone's 390px, less the journal's 12px
+     sides and the entry's 1.5px borders); the column adds the borders back. The
      month picker and highlight key keep to it too, lined up with the entries' left edge. */
   .journal-inner > * {
-    max-width: calc(2 * 343px + 2 * 14px + 3px);
+    max-width: calc(2 * 363px + 3px);
     margin-inline: auto;
   }
 }
@@ -2862,6 +2862,20 @@ ruby.fix {
 .entry-paper {
   position: relative;
   padding-bottom: 36px;
+}
+
+/* The paper fills the entry under its week row, out to the border on every side (owner's feedback
+   2026-10-31: no blank strip around it); the text keeps its own 18px off the sides (.journal-text). The
+   editor's page reaches its sides too, so the text wraps the same while writing. */
+.journal-entry > .entry-paper {
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 0 0 10.5px 10.5px;
+}
+
+.editor-body > .editor-page {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .entry-tools {
