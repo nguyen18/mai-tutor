@@ -1306,7 +1306,8 @@ a.discover-link:hover {
   display: block;
   width: 100%;
   margin: 0;
-  padding: 14px 18px 24px;
+  /* Close to the page's sides (owner's feedback 2026-10-31: the lines stopped well short of them). */
+  padding: 14px 8px 24px;
   font: inherit;
   /* The same size as Mai's corrections over the words (owner's requests 2026-10-30). */
   font-size: 0.9rem;
