@@ -70,15 +70,28 @@ export function Popover({
   const tipRef = useRef<HTMLDivElement>(null)
   const boxId = useId()
 
-  // Unpin on a click or tap anywhere outside this trigger and its box.
+  // Close on a click or tap anywhere outside this trigger and its box. Focus is dropped too: when the focused
+  // button inside the box goes away (picking another meaning re-draws the box), the browser fires no blur,
+  // so the box stayed open after the pointer left and after clicks elsewhere (owner's feedback 2026-10-31).
   useEffect(() => {
-    if (!pinned) return
+    if (!pinned && !focused) return
     const onDown = (e: PointerEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setPinned(false)
+      if (wrapRef.current?.contains(e.target as Node)) return
+      setPinned(false)
+      setFocused(false)
     }
     document.addEventListener('pointerdown', onDown)
     return () => document.removeEventListener('pointerdown', onDown)
-  }, [pinned])
+  }, [pinned, focused])
+
+  // Leaving with the pointer closes a box that isn't pinned, even if a click inside left a button focused
+  // (which kept it open: owner's feedback 2026-10-31). Keyboard users never leave this way.
+  const onMouseLeave = () => {
+    setHovered(false)
+    setFocused(false)
+    const active = document.activeElement
+    if (active instanceof HTMLElement && wrapRef.current?.contains(active)) active.blur()
+  }
 
   // Keep the box on screen: it opens below the trigger, nudged sideways to fit, and flips above when it
   // doesn't fit below and there's more room above. A box too tall for either side (a 12-row pronoun
@@ -126,7 +139,7 @@ export function Popover({
       ref={wrapRef}
       className={wrapClassName}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={onMouseLeave}
       onFocus={() => setFocused(true)}
       onBlur={onBlur}
       onKeyDown={(e) => e.key === 'Escape' && close()}

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AudioNotePlayer } from '../components/AudioNoteRecorder'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { JournalEditor } from '../components/JournalEditor'
@@ -235,7 +235,42 @@ type CardProps = {
   onDelete: () => void
 }
 
+// The paper's bottom row (the audio note, ✎ and ✕) sits in the middle of a row of its grid (owner's
+// feedback 2026-10-31): the paper is made just tall enough to end on a grid line, a row below what's written.
+// The text's line boxes start 6px below the grid's lines (App.css), so up to SPILL px of content may run into
+// the bottom row: that's the leading under a line's letters.
+const SPILL = 10
+// Paper left under the bottom row (owner's request 2026-10-31); .entry-tools sits this far up (App.css).
+const UNDER_ROW = 8
+
+function useGridBottomRow(paperRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const paper = paperRef.current
+    if (!paper) return
+    const snap = () => {
+      const style = getComputedStyle(paper)
+      const row = parseFloat(style.backgroundSize)
+      const offset = parseFloat(style.backgroundPositionY)
+      if (!row) return
+      const top = paper.getBoundingClientRect().top
+      let end = 0
+      for (const el of paper.children) {
+        if (el.classList.contains('entry-tools') || getComputedStyle(el).position === 'fixed') continue
+        end = Math.max(end, el.getBoundingClientRect().bottom - top + parseFloat(getComputedStyle(el).marginBottom))
+      }
+      const rowTop = offset + Math.max(0, Math.ceil((end - SPILL - offset) / row)) * row
+      paper.style.paddingBottom = `${rowTop + row - end + UNDER_ROW}px`
+    }
+    snap()
+    const observer = new ResizeObserver(snap)
+    for (const el of paper.children) if (!el.classList.contains('entry-tools')) observer.observe(el)
+    return () => observer.disconnect()
+  })
+}
+
 function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onEdit, onDelete }: CardProps) {
+  const paperRef = useRef<HTMLDivElement>(null)
+  useGridBottomRow(paperRef)
   const [confirming, setConfirming] = useState(false)
   const [asking, setAsking] = useState(false)
   const lang = targetById(entry.targetId)
@@ -249,7 +284,7 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
       <EntryHead when={entry.when} date={date} label={entry.targetId !== currentTarget ? lang.label : undefined} lang={lang.code} />
 
       {/* One sheet of paper: the learner's page, then Mai's notes written at the bottom of it. */}
-      <div className={check ? 'entry-paper annotated' : 'entry-paper'}>
+      <div ref={paperRef} className={check ? 'entry-paper annotated' : 'entry-paper'}>
         {/* The audio note's bar, then edit and delete, along the bottom of the page under the text. */}
         <div className={entry.audio ? 'entry-tools with-audio' : 'entry-tools'}>
           {entry.audio && !confirming && <AudioNotePlayer audio={entry.audio} bare />}
@@ -268,12 +303,12 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
                 ✎
               </button>
               <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
-                🗑
+                ✕
               </button>
             </>
           )}
         </div>
-        {/* Three clicks to delete (owner's request 2026-10-30): 🗑, the red Delete, then Yes here. */}
+        {/* Three clicks to delete (owner's request 2026-10-30): ✕, the red Delete, then Yes here. */}
         {asking && (
           <ConfirmDialog
             title="Are you sure?"

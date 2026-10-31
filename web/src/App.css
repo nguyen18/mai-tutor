@@ -1874,11 +1874,15 @@ button.frame-option {
 }
 
 .other-meanings ul {
-  margin: 6px 0 0;
-  padding: 0;
+  /* Room for each option's full-bleed hover background (8px past the text on each side), which scrolled
+     the list sideways when it reached past the list's box (owner's feedback 2026-10-31). */
+  margin: 6px -8px 0;
+  padding: 0 8px;
   list-style: none;
   max-height: 240px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overflow-wrap: anywhere;
 }
 
 /* These meanings have no star, so the word type takes the first column instead of
@@ -1958,22 +1962,52 @@ button.tip-trigger.word-mark.picked {
   padding: 20px 16px 96px;
 }
 
-/* On a computer every page fills the screen's width (owner's request 2026-10-29: the journal first, then
-   all pages), with room on the left for the floating 💬 and ☰ buttons and the same on the right. In the
-   journal, photos and stickers grow with it: they're sized in fractions of the sheet's width. */
+/* On a computer every page keeps to one column in the middle (owner's requests 2026-10-31: the journal
+   first, then every page). It was the screen's full width (2026-10-29), but pictures are sized in fractions
+   of the page's width and the writing isn't, so on a wide page they grew far past the text they sat beside
+   on a phone. The column's journal page is at most twice a phone's, so a picture is never more than double
+   its size next to the words: a phone's page is 363px (an iPhone's 390px, less the journal's 12px sides and
+   the entry's 1.5px borders), and the column adds the borders back. Every other page takes the same column,
+   and on the journal the month picker and highlight key line up with the entries' left edge. */
 :root {
   --page-width: min(680px, 100vw - 32px);
 }
 
 @media (min-width: 900px) {
   :root {
-    --page-width: calc(100vw - 176px);
+    --column: calc(2 * 363px + 3px);
+    /* The column's left edge, from the screen's. */
+    --column-left: calc(50% - var(--column) / 2);
+    --page-width: var(--column);
   }
 
   .app,
   .journal-inner {
-    max-width: none;
-    padding-inline: 88px;
+    max-width: var(--column);
+    padding-inline: 0;
+  }
+
+  /* The floating buttons stay near the column rather than out at the screen's corners (owner's requests
+     2026-10-31): the journal's ＋ at most 32px right of it; ☰, 💬 and the sign-in reminder end at most 32px
+     left of it, so they line up on their right edges. Those three cast a 3px shadow to the right, counted in
+     their 32px, so both sides' gaps look the same. Still 16px from the screen's edge at the least. */
+  .journal-page .journal-corner {
+    right: max(16px, env(safe-area-inset-right), calc(var(--column-left) - 32px - 46px));
+  }
+
+  /* :root, so these win over the buttons' own rules further down. */
+  :root .site-menu,
+  :root .feedback {
+    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - 52px));
+  }
+
+  /* The reminder narrows (to 170px at the least) to fit between the screen's edge and the column rather
+     than reaching over the page; only on a screen too narrow even for that does it overlap the column's
+     edge. */
+  :root .sign-in-nudge {
+    --nudge-width: clamp(170px, calc(var(--column-left) - 32px - 3px - 16px), 260px);
+    width: var(--nudge-width);
+    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - var(--nudge-width)));
   }
 }
 
@@ -2111,7 +2145,6 @@ button.tip-trigger.page-info[aria-expanded='true'] {
 /* An entry: a bordered page with a "Date" row and the week on top */
 .journal-entry {
   margin-top: 20px;
-  padding-bottom: 14px;
   list-style: none;
   background: var(--surface);
   border: 1.5px solid var(--ink);
@@ -2671,7 +2704,8 @@ button.sticker-way {
 }
 
 .entry-paper {
-  margin-top: 14px;
+  /* Straight under the week row (owner's feedback 2026-10-31: no blank strip above the page). */
+  margin-top: 0;
   background-image:
     linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px)),
     linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px));
@@ -2847,17 +2881,41 @@ ruby.fix {
   white-space: nowrap;
 }
 
-/* An entry's ✎ and 🗑, laid over the bottom-right corner of its page; the page keeps a strip of blank
+/* An entry's ✎ and ✕, laid over the bottom-right corner of its page; the page keeps a strip of blank
    paper at the bottom for them, so they never sit on the writing. */
 .entry-paper {
   position: relative;
   padding-bottom: 36px;
 }
 
+/* A saved page's text ends close above its bottom row (the audio note, ✎ and ✕): owner's feedback
+   2026-10-31, the row sat a long way under the last line. */
+.entry-paper .journal-text {
+  padding-bottom: 4px;
+}
+
+/* The paper fills the entry under its week row, out to the border on every side (owner's feedback
+   2026-10-31: no blank strip around it); the text keeps its own 18px off the sides (.journal-text). The
+   editor's page reaches its sides too, so the text wraps the same while writing. */
+.journal-entry > .entry-paper {
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 0 0 10.5px 10.5px;
+}
+
+.editor-body > .editor-page {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* In the paper's bottom row of grid, in the middle of it (Journal.tsx makes the paper end on a grid line),
+   lined up with the text's sides (.journal-text's 18px). */
 .entry-tools {
   position: absolute;
-  right: 8px;
+  right: 18px;
+  /* A little paper under the row (Journal.tsx's UNDER_ROW). */
   bottom: 8px;
+  height: var(--line);
   z-index: 3;
   display: flex;
   align-items: center;
@@ -2871,11 +2929,20 @@ ruby.fix {
   border: 1.5px solid var(--ink);
 }
 
-/* ✎ and 🗑 faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
+/* ✎ and ✕ faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
 .entry-tools .icon-button.small {
-  font-size: 0.95rem;
+  /* A little smaller than other small buttons (owner's request 2026-10-31). */
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
   opacity: 0.45;
   transition: opacity 0.15s;
+}
+
+/* The audio note's ▶ stays full (owner's feedback 2026-10-31): only ✎ and ✕ fade. */
+.entry-tools .audio-bar .icon-button.small {
+  opacity: 1;
+  font-size: 0.68rem;
 }
 
 .entry-tools .icon-button.small:hover,
@@ -2922,9 +2989,9 @@ ruby.fix {
   transform: translateY(calc(-50% - 0.75em + 2px));
 }
 
-/* An entry's audio note: just the player bar, in the bottom row beside ✎ and 🗑. */
+/* An entry's audio note: just the player bar, in the bottom row beside ✎ and ✕. */
 .entry-tools.with-audio {
-  left: 8px;
+  left: 18px;
 }
 
 .entry-tools .audio-bar {

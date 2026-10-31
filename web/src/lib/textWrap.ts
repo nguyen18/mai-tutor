@@ -91,7 +91,7 @@ export function wrapFloats(
   outlineOf: (item: SheetItem) => Outline | undefined,
   /** How far the picture's caption reaches below it, in px (0 for none). */
   captionHeight: (item: SheetItem) => number,
-  /** Space kept clear in the page's top-right corner (the entry's ✎ and 🗑 buttons sit there). */
+  /** Space kept clear in the page's top-right corner (the entry's ✎ and ✕ buttons sit there). */
   corner?: { width: number; height: number },
 ): WrapFloat[] {
   if (!width) return []
