@@ -235,7 +235,7 @@ type CardProps = {
   onDelete: () => void
 }
 
-// The paper's bottom row (the audio note, ✎ and 🗑) sits in the middle of a row of its grid (owner's
+// The paper's bottom row (the audio note, ✎ and ✕) sits in the middle of a row of its grid (owner's
 // feedback 2026-10-31): the paper is made just tall enough to end on a grid line, a row below what's written.
 // The text's line boxes start 6px below the grid's lines (App.css), so up to SPILL px of content may run into
 // the bottom row: that's the leading under a line's letters.
@@ -301,12 +301,12 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
                 ✎
               </button>
               <button type="button" className="icon-button small" aria-label="Delete entry" title="Delete" onClick={() => setConfirming(true)}>
-                🗑
+                ✕
               </button>
             </>
           )}
         </div>
-        {/* Three clicks to delete (owner's request 2026-10-30): 🗑, the red Delete, then Yes here. */}
+        {/* Three clicks to delete (owner's request 2026-10-30): ✕, the red Delete, then Yes here. */}
         {asking && (
           <ConfirmDialog
             title="Are you sure?"

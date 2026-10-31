@@ -2857,14 +2857,14 @@ ruby.fix {
   white-space: nowrap;
 }
 
-/* An entry's ✎ and 🗑, laid over the bottom-right corner of its page; the page keeps a strip of blank
+/* An entry's ✎ and ✕, laid over the bottom-right corner of its page; the page keeps a strip of blank
    paper at the bottom for them, so they never sit on the writing. */
 .entry-paper {
   position: relative;
   padding-bottom: 36px;
 }
 
-/* A saved page's text ends close above its bottom row (the audio note, ✎ and 🗑): owner's feedback
+/* A saved page's text ends close above its bottom row (the audio note, ✎ and ✕): owner's feedback
    2026-10-31, the row sat a long way under the last line. */
 .entry-paper .journal-text {
   padding-bottom: 4px;
@@ -2903,14 +2903,14 @@ ruby.fix {
   border: 1.5px solid var(--ink);
 }
 
-/* ✎ and 🗑 faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
+/* ✎ and ✕ faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
 .entry-tools .icon-button.small {
   font-size: 0.95rem;
   opacity: 0.45;
   transition: opacity 0.15s;
 }
 
-/* The audio note's ▶ stays full (owner's feedback 2026-10-31): only ✎ and 🗑 fade. */
+/* The audio note's ▶ stays full (owner's feedback 2026-10-31): only ✎ and ✕ fade. */
 .entry-tools .audio-bar .icon-button.small {
   opacity: 1;
 }
@@ -2959,7 +2959,7 @@ ruby.fix {
   transform: translateY(calc(-50% - 0.75em + 2px));
 }
 
-/* An entry's audio note: just the player bar, in the bottom row beside ✎ and 🗑. */
+/* An entry's audio note: just the player bar, in the bottom row beside ✎ and ✕. */
 .entry-tools.with-audio {
   left: 8px;
 }
