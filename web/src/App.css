@@ -1978,9 +1978,9 @@ button.tip-trigger.word-mark.picked {
   /* Pictures are sized in fractions of the page's width but the writing isn't, so on a wide page they grew
      past the text they sat beside on a phone. Entries and the editor keep to a column whose page is at most
      twice a phone's (an iPhone's is 343px), so a picture is never more than double its size next to the
-     words (owner's request 2026-10-31). The column adds the entry's 14px margins and 1.5px borders. */
-  .journal-list,
-  .journal-editor {
+     words (owner's request 2026-10-31). The column adds the entry's 14px margins and 1.5px borders. The
+     month picker and highlight key keep to it too, lined up with the entries' left edge. */
+  .journal-inner > * {
     max-width: calc(2 * 343px + 2 * 14px + 3px);
     margin-inline: auto;
   }
