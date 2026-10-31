@@ -2905,7 +2905,10 @@ ruby.fix {
 
 /* ✎ and ✕ faded, so they don't compete with the page (owner's request 2026-10-30); full on hover or focus. */
 .entry-tools .icon-button.small {
-  font-size: 0.95rem;
+  /* A little smaller than other small buttons (owner's request 2026-10-31). */
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
   opacity: 0.45;
   transition: opacity 0.15s;
 }
@@ -2913,6 +2916,7 @@ ruby.fix {
 /* The audio note's ▶ stays full (owner's feedback 2026-10-31): only ✎ and ✕ fade. */
 .entry-tools .audio-bar .icon-button.small {
   opacity: 1;
+  font-size: 0.68rem;
 }
 
 .entry-tools .icon-button.small:hover,
