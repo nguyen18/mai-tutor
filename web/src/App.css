@@ -2889,7 +2889,8 @@ ruby.fix {
 .entry-tools {
   position: absolute;
   right: 18px;
-  bottom: 0;
+  /* A little paper under the row (Journal.tsx's UNDER_ROW). */
+  bottom: 8px;
   height: var(--line);
   z-index: 3;
   display: flex;

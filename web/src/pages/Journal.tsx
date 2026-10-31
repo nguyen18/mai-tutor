@@ -240,6 +240,8 @@ type CardProps = {
 // The text's line boxes start 6px below the grid's lines (App.css), so up to SPILL px of content may run into
 // the bottom row: that's the leading under a line's letters.
 const SPILL = 10
+// Paper left under the bottom row (owner's request 2026-10-31); .entry-tools sits this far up (App.css).
+const UNDER_ROW = 8
 
 function useGridBottomRow(paperRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
@@ -257,7 +259,7 @@ function useGridBottomRow(paperRef: RefObject<HTMLDivElement | null>) {
         end = Math.max(end, el.getBoundingClientRect().bottom - top + parseFloat(getComputedStyle(el).marginBottom))
       }
       const rowTop = offset + Math.max(0, Math.ceil((end - SPILL - offset) / row)) * row
-      paper.style.paddingBottom = `${rowTop + row - end}px`
+      paper.style.paddingBottom = `${rowTop + row - end + UNDER_ROW}px`
     }
     snap()
     const observer = new ResizeObserver(snap)
