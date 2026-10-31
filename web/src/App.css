@@ -1975,15 +1975,38 @@ button.tip-trigger.word-mark.picked {
     max-width: none;
     padding-inline: 88px;
   }
+
   /* Pictures are sized in fractions of the page's width but the writing isn't, so on a wide page they grew
      past the text they sat beside on a phone. Entries and the editor keep to a column whose page is at most
-     twice a phone's, so a picture is never more than double its size next to the
-     words (owner's request 2026-10-31). A phone's page is 363px (an iPhone's 390px, less the journal's 12px
-     sides and the entry's 1.5px borders); the column adds the borders back. The
-     month picker and highlight key keep to it too, lined up with the entries' left edge. */
+     twice a phone's, so a picture is never more than double its size next to the words (owner's request
+     2026-10-31). A phone's page is 363px (an iPhone's 390px, less the journal's 12px sides and the entry's
+     1.5px borders); the column adds the borders back. The month picker and highlight key keep to it too,
+     lined up with the entries' left edge. */
+  :root {
+    --journal-col: calc(2 * 363px + 3px);
+    /* The column's left edge, from the screen's. */
+    --journal-col-left: calc(50% - var(--journal-col) / 2);
+  }
+
   .journal-inner > * {
-    max-width: calc(2 * 363px + 3px);
+    max-width: var(--journal-col);
     margin-inline: auto;
+  }
+
+  /* The floating buttons stay near the column rather than out at the screen's corners (owner's request
+     2026-10-31): ＋ at most 32px right of it; ☰, 💬 and the sign-in reminder end at most 32px left of it, so
+     they line up on their right edges. Still 16px from the screen's edge at the least. */
+  .journal-page .journal-corner {
+    right: max(16px, env(safe-area-inset-right), calc(var(--journal-col-left) - 32px - 46px));
+  }
+
+  :root:has(.journal-page) .site-menu,
+  :root:has(.journal-page) .feedback {
+    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 52px));
+  }
+
+  :root:has(.journal-page) .sign-in-nudge {
+    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 260px));
   }
 }
 
