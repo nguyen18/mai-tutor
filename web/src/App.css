@@ -2121,7 +2121,6 @@ button.tip-trigger.page-info[aria-expanded='true'] {
 /* An entry: a bordered page with a "Date" row and the week on top */
 .journal-entry {
   margin-top: 20px;
-  padding-bottom: 14px;
   list-style: none;
   background: var(--surface);
   border: 1.5px solid var(--ink);
