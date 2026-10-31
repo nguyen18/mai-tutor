@@ -2884,10 +2884,11 @@ ruby.fix {
   margin-right: 0;
 }
 
-/* In the paper's bottom row of grid, in the middle of it (Journal.tsx makes the paper end on a grid line). */
+/* In the paper's bottom row of grid, in the middle of it (Journal.tsx makes the paper end on a grid line),
+   lined up with the text's sides (.journal-text's 18px). */
 .entry-tools {
   position: absolute;
-  right: 8px;
+  right: 18px;
   bottom: 0;
   height: var(--line);
   z-index: 3;
@@ -2965,7 +2966,7 @@ ruby.fix {
 
 /* An entry's audio note: just the player bar, in the bottom row beside ✎ and ✕. */
 .entry-tools.with-audio {
-  left: 8px;
+  left: 18px;
 }
 
 .entry-tools .audio-bar {
