@@ -1874,11 +1874,15 @@ button.frame-option {
 }
 
 .other-meanings ul {
-  margin: 6px 0 0;
-  padding: 0;
+  /* Room for each option's full-bleed hover background (8px past the text on each side), which scrolled
+     the list sideways when it reached past the list's box (owner's feedback 2026-10-31). */
+  margin: 6px -8px 0;
+  padding: 0 8px;
   list-style: none;
   max-height: 240px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overflow-wrap: anywhere;
 }
 
 /* These meanings have no star, so the word type takes the first column instead of
