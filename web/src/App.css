@@ -2864,6 +2864,12 @@ ruby.fix {
   padding-bottom: 36px;
 }
 
+/* A saved page's text ends close above its bottom row (the audio note, ✎ and 🗑): owner's feedback
+   2026-10-31, the row sat a long way under the last line. */
+.entry-paper .journal-text {
+  padding-bottom: 4px;
+}
+
 /* The paper fills the entry under its week row, out to the border on every side (owner's feedback
    2026-10-31: no blank strip around it); the text keeps its own 18px off the sides (.journal-text). The
    editor's page reaches its sides too, so the text wraps the same while writing. */
