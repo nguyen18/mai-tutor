@@ -1995,18 +1995,19 @@ button.tip-trigger.word-mark.picked {
 
   /* The floating buttons stay near the column rather than out at the screen's corners (owner's request
      2026-10-31): ＋ at most 32px right of it; ☰, 💬 and the sign-in reminder end at most 32px left of it, so
-     they line up on their right edges. Still 16px from the screen's edge at the least. */
+     they line up on their right edges. Those three cast a 3px shadow to the right, counted in their 32px, so
+     both sides' gaps look the same. Still 16px from the screen's edge at the least. */
   .journal-page .journal-corner {
     right: max(16px, env(safe-area-inset-right), calc(var(--journal-col-left) - 32px - 46px));
   }
 
   :root:has(.journal-page) .site-menu,
   :root:has(.journal-page) .feedback {
-    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 52px));
+    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 3px - 52px));
   }
 
   :root:has(.journal-page) .sign-in-nudge {
-    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 260px));
+    left: max(16px, env(safe-area-inset-left), calc(var(--journal-col-left) - 32px - 3px - 260px));
   }
 }
 
