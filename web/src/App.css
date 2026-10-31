@@ -2681,7 +2681,8 @@ button.sticker-way {
 }
 
 .entry-paper {
-  margin-top: 14px;
+  /* Straight under the week row (owner's feedback 2026-10-31: no blank strip above the page). */
+  margin-top: 0;
   background-image:
     linear-gradient(to bottom, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px)),
     linear-gradient(90deg, transparent calc(var(--line) - 1px), var(--sheet-grid) calc(var(--line) - 1px));
