@@ -2902,6 +2902,11 @@ ruby.fix {
   transition: opacity 0.15s;
 }
 
+/* The audio note's ▶ stays full (owner's feedback 2026-10-31): only ✎ and 🗑 fade. */
+.entry-tools .audio-bar .icon-button.small {
+  opacity: 1;
+}
+
 .entry-tools .icon-button.small:hover,
 .entry-tools .icon-button.small:focus-visible {
   opacity: 1;
