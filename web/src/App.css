@@ -740,6 +740,13 @@ button.tip-trigger.phrase-mark .word-text {
   border-top: 1px solid var(--border);
 }
 
+/* "Word by word", after the phrase's own translation. */
+.phrase-parts > .word-options-label {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .phrase-part-head {
   margin-bottom: 4px;
 }

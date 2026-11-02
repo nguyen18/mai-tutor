@@ -80,6 +80,27 @@ export function Journal() {
     entriesRef.current = entries
   })
 
+  // A highlighted phrase (held and dragged over) is saved on the entry's check at once, replacing any it
+  // overlaps, then Mai reads its words as one piece and her reading is saved with it.
+  const updatePhrases = async (id: string, update: (phrases: HeldPhrase[]) => HeldPhrase[]) => {
+    const latest = entriesRef.current?.find((e) => e.id === id)
+    const check = latest && currentCheck(latest)
+    if (!latest || !check) return
+    await save({ ...latest, check: { ...check, phrases: update(check.phrases ?? []) } })
+  }
+  const samePhrase = (p: HeldPhrase, q: HeldPhrase) => p.a === q.a && p.b === q.b
+  // Mai reads a highlighted phrase's words as one piece; her reading and its parts are saved with it.
+  const readPhrase = async (entry: JournalEntry, phrase: HeldPhrase) => {
+    try {
+      const { review } = await checkSpelling(targetById(entry.targetId), phrase.text, false)
+      const reading = review.corrected.trim()
+      const parts = reviewParts(review)
+      await updatePhrases(entry.id, (ps) => ps.map((p) => (samePhrase(p, phrase) && p.text === phrase.text ? { ...p, reading, parts } : p)))
+    } catch {
+      // Left without a reading: the box says Mai is still reading it, and removing and highlighting it again
+      // tries again.
+    }
+  }
   const runCheck = async (entry: JournalEntry) => {
     if (!entry.text || !backendConfigured) return
     setChecks((c) => ({ ...c, [entry.id]: 'checking' }))
@@ -88,7 +109,12 @@ export function Journal() {
       // Saved onto the entry as it is now, unless its words changed while Mai was checking, with the
       // learner's picks and accepted tips from the last check where those sentences didn't change.
       const latest = entriesRef.current?.find((e) => e.id === entry.id)
-      if (latest && latest.text === entry.text) await save({ ...latest, check: carryOver(latest.check, fresh) })
+      if (latest && latest.text === entry.text) {
+        const check = carryOver(latest.check, fresh)
+        await save({ ...latest, check })
+        // Highlighted phrases carried over without a reading (another Mai checked it) are read again.
+        for (const p of check.phrases ?? []) if (p.reading === undefined) void readPhrase(entry, p)
+      }
       setChecks((c) => {
         const next = { ...c }
         delete next[entry.id]
@@ -137,31 +163,14 @@ export function Journal() {
     return () => window.clearTimeout(id)
   }, [entries, checks, month])
 
-  // A highlighted phrase (held and dragged over) is saved on the entry's check at once, replacing any it
-  // overlaps, then Mai reads its words as one piece and her reading is saved with it.
-  const updatePhrases = async (id: string, update: (phrases: HeldPhrase[]) => HeldPhrase[]) => {
-    const latest = entriesRef.current?.find((e) => e.id === id)
-    const check = latest && currentCheck(latest)
-    if (!latest || !check) return
-    await save({ ...latest, check: { ...check, phrases: update(check.phrases ?? []) } })
-  }
   const addPhrase = async (entry: JournalEntry, range: TextRange) => {
     const check = currentCheck(entry)
     if (!check) return
     const text = check.review.text.slice(range.a, range.b)
     const phrase: HeldPhrase = { ...range, text }
     await updatePhrases(entry.id, (ps) => [...ps.filter((p) => p.b <= range.a || p.a >= range.b), phrase])
-    try {
-      const { review } = await checkSpelling(targetById(entry.targetId), text, false)
-      const reading = review.corrected.trim()
-      const parts = reviewParts(review)
-      await updatePhrases(entry.id, (ps) => ps.map((p) => (p.a === range.a && p.b === range.b && p.text === text ? { ...p, reading, parts } : p)))
-    } catch {
-      // Left without a reading: the box says Mai is still reading it, and removing and highlighting it again
-      // tries again.
-    }
+    await readPhrase(entry, phrase)
   }
-  const samePhrase = (p: HeldPhrase, q: HeldPhrase) => p.a === q.a && p.b === q.b
   // Removing a highlight starts those words over (owner's request 2026-11-02): the phrase goes, and so do the
   // learner's picks on the words inside it, so they show as Mai first had them.
   const removePhrase = async (entry: JournalEntry, phrase: HeldPhrase) => {
@@ -774,12 +783,18 @@ function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps)
   }, [target, reading, lookUp])
   const whole = single ? true : !lookUp ? false : found?.reading === reading ? found.whole : undefined
 
-  if (whole === undefined) return <p className="muted">Looking up “{reading}”…</p>
-  if (whole) return <WordAlternativesBox word={reading} shown={reading} onPick={onPick} target={target} tag="Mai's reading" />
+  if (single) return <WordAlternativesBox word={reading} shown={reading} onPick={onPick} target={target} tag="Mai's reading" />
   // Phrases saved before parts had the learner's words (a list of Mai's words then) show Mai's words.
-  const list: PhrasePart[] = parts?.length
+  const saved: PhrasePart[] = parts?.length
     ? parts.map((p) => (typeof p === 'string' ? { text: p, read: p } : p))
     : reading.split(/\s+/).filter((w) => /\p{L}/u.test(w)).map((w) => ({ text: w, read: w }))
+  // One correction covering the phrase ("đên tư" → "đến từ") is shown word by word too: "đến", "từ" (the
+  // learner's words beside them when they're as many).
+  const single1 = saved.length === 1 ? saved[0] : undefined
+  const readWords = single1?.read.split(/\s+/) ?? []
+  const textWords = single1?.text.split(/\s+/) ?? []
+  const list: PhrasePart[] =
+    single1 && readWords.length > 1 ? readWords.map((read, i) => ({ text: textWords.length === readWords.length ? textWords[i] : read, read })) : saved
   const words = list.map((p) => p.read)
   // A word's choice goes in its place in the reading (the n-th time it's there, for words said twice).
   const replace = (i: number, pick: string) => {
@@ -792,9 +807,22 @@ function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps)
     }
     onPick(reading.slice(0, at) + keepCapital(reading.slice(at, at + words[i].length), pick) + reading.slice(at + words[i].length))
   }
+  // The phrase's own translation first when it has one (owner's request 2026-11-02: "đến từ", come from),
+  // then its words one by one, unless it's a single word or correction already shown whole.
+  const byWord = list.length > 1 || whole === false
   return (
     <div className="phrase-parts">
-      {list.map((p, i) => (
+      {whole === undefined && <p className="muted">Looking up “{reading}”…</p>}
+      {whole && (
+        <div className="phrase-part">
+          <p className="phrase-part-head" lang={target.code}>
+            <strong>{reading}</strong>
+          </p>
+          <WordAlternativesBox word={reading} shown={reading} onPick={onPick} target={target} tag="Mai's reading" />
+        </div>
+      )}
+      {whole && byWord && <p className="tip-note-label word-options-label">Word by word</p>}
+      {byWord && list.map((p, i) => (
         <div key={`${i}-${p.text}`} className="phrase-part">
           <p className="phrase-part-head" lang={target.code}>
             {p.text.toLowerCase() === p.read.toLowerCase() ? (

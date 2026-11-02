@@ -149,8 +149,12 @@ export function carryOver(old: SpellingCheck | undefined, next: SpellingCheck): 
     const at = hint ? after[si].hints.findIndex((h) => h.text === hint.text && h.rule === hint.rule) : -1
     return at >= 0 ? [`${si}:${at}`] : []
   })
-  // Highlighted phrases whose words are still in the same place.
-  const phrases = (old.phrases ?? []).filter((p) => next.review.text.slice(p.a, p.b) === p.text)
+  // Highlighted phrases whose words are still in the same place; read again (reading and parts dropped,
+  // Journal fills them in) when another Mai checked the entry.
+  const fresh = old.version !== next.version
+  const phrases = (old.phrases ?? [])
+    .filter((p) => next.review.text.slice(p.a, p.b) === p.text)
+    .map((p) => (fresh ? { a: p.a, b: p.b, text: p.text } : p))
   return {
     ...next,
     ...(Object.keys(wordPicks).length ? { wordPicks } : {}),
