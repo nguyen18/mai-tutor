@@ -704,24 +704,29 @@ button.tip-option:focus-visible {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  border-radius: 4px;
 }
 
-.annotated-root .sel-unit.sel-live {
+/* The pink sits on the words' text only (.word-text, inline: the ruby base around it is a block as tall as
+   the page's line), as tight as Mai's correction tags (.fix-new). */
+.annotated-root .sel-unit.sel-live .word-text {
   background: var(--phrase);
+  border-radius: 3px;
   box-shadow: -3px 0 0 var(--phrase), 3px 0 0 var(--phrase);
 }
 
 /* A highlighted phrase (PhraseMark): one pink word, with Mai's reading of it above when it differs. */
 button.tip-trigger.phrase-mark {
-  padding: 0 2px;
-  background: var(--phrase);
-  border-radius: 4px;
   cursor: pointer;
 }
 
 button.tip-trigger.phrase-mark .fix-original {
   text-decoration: none;
+}
+
+button.tip-trigger.phrase-mark .word-text {
+  padding: 0 3px;
+  background: var(--phrase);
+  border-radius: 3px;
 }
 
 .change-kind[data-kind='phrase'] {

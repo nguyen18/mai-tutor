@@ -230,6 +230,26 @@ export function shownWord(change: ReviewChange, pick: string | undefined): strin
   return pick === undefined ? change.to : keepCapital(change.to, pick)
 }
 
+/**
+ * The `wordPicks` keys of the words inside `range` of the checked text (offsets into `review.text`): changes
+ * by where their words are, and kept words by their offset.
+ */
+export function pickKeysIn(check: SpellingCheck, range: { a: number; b: number }): string[] {
+  const review = withAcceptedHints(check)
+  const keys: string[] = []
+  review.sentences.forEach((sentence, si) => {
+    for (const seg of alignSentence(sentence)) {
+      const a = sentence.start + seg.start
+      if (seg.change && a >= range.a && a + seg.text.length <= range.b) keys.push(changeKey(si, sentence.changes.indexOf(seg.change)))
+    }
+    for (const key of Object.keys(check.wordPicks ?? {})) {
+      const kept = /^(\d+)@(\d+)$/.exec(key)
+      if (kept && Number(kept[1]) === si && sentence.start + Number(kept[2]) >= range.a && sentence.start + Number(kept[2]) < range.b) keys.push(key)
+    }
+  })
+  return keys
+}
+
 /** A key for `wordPicks` on a word Mai left alone: its sentence and where it starts in the corrected sentence. */
 export const keptWordKey = (sentence: number, offset: number) => `${sentence}@${offset}`
 

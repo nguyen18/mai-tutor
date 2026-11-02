@@ -9,6 +9,7 @@ import { Popover } from '../components/Popover'
 import {
   CHECK_VERSION,
   carryOver,
+  pickKeysIn,
   changeKey,
   keepCapital,
   keptWordKey,
@@ -148,6 +149,16 @@ export function Journal() {
     }
   }
   const samePhrase = (p: HeldPhrase, q: HeldPhrase) => p.a === q.a && p.b === q.b
+  // Removing a highlight starts those words over (owner's request 2026-11-02): the phrase goes, and so do the
+  // learner's picks on the words inside it, so they show as Mai first had them.
+  const removePhrase = async (entry: JournalEntry, phrase: HeldPhrase) => {
+    const latest = entriesRef.current?.find((e) => e.id === entry.id)
+    const check = latest && currentCheck(latest)
+    if (!latest || !check) return
+    const inside = new Set(pickKeysIn(check, phrase))
+    const wordPicks = Object.fromEntries(Object.entries(check.wordPicks ?? {}).filter(([key]) => !inside.has(key)))
+    await save({ ...latest, check: { ...check, wordPicks, phrases: (check.phrases ?? []).filter((p) => !samePhrase(p, phrase)) } })
+  }
 
   // The learner's words from `range` of the checked text replaced (a highlighted phrase's "Use in my entry"),
   // then checked again.
@@ -272,7 +283,7 @@ export function Journal() {
                   }
                   onReplaceText={(range, text) => replaceText(entry, range, text)}
                   onAddPhrase={(range) => addPhrase(entry, range)}
-                  onRemovePhrase={(phrase) => updatePhrases(entry.id, (ps) => ps.filter((p) => !samePhrase(p, phrase)))}
+                  onRemovePhrase={(phrase) => removePhrase(entry, phrase)}
                   onPickPhrase={(phrase, reading) => updatePhrases(entry.id, (ps) => ps.map((p) => (samePhrase(p, phrase) ? { ...p, reading } : p)))}
                   onEdit={() => {
                     setEditing({ entry })
@@ -661,7 +672,9 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
       title={changed ? `${phrase.text} → ${reading}` : phrase.text}
       trigger={
         <ruby className="fix phrase">
-          <span className="fix-original">{phrase.text}</span>
+          <span className="fix-original">
+            <span className="word-text">{phrase.text}</span>
+          </span>
           <rt className="fix-new" data-kind={changed ? kindOf('spelling').color : undefined}>
             {changed ? reading : ''}
           </rt>
@@ -742,7 +755,9 @@ function ChangeMark({ change, original, sentence, shown, onPick, target }: Chang
           // A pick with the same letters ("rat" → "rất": the learner meant a Vietnamese word) is an accent fix,
           // tinted and drawn like one; other English stays crossed out.
           <ruby className={meantTarget ? 'fix' : english ? 'fix crossed' : 'fix'}>
-            <span className="fix-original">{original}</span>
+            <span className="fix-original">
+              <span className="word-text">{original}</span>
+            </span>
             {/* A word left out ("the") is only crossed out: nothing goes above it. */}
             <rt className="fix-new" data-kind={shown ? (meantTarget ? kindOf('spelling').color : kind.color) : undefined}>
               {shown}
@@ -984,11 +999,13 @@ function WordMark({ word, sentence, pick, onPick, target }: WordMarkProps) {
       trigger={
         changed ? (
           <ruby className="fix">
-            <span className="fix-original">{word}</span>
+            <span className="fix-original">
+              <span className="word-text">{word}</span>
+            </span>
             <rt className="fix-new picked">{shown}</rt>
           </ruby>
         ) : (
-          shown
+          <span className="word-text">{shown}</span>
         )
       }
       triggerClassName={changed ? 'word-mark picked' : 'word-mark'}
