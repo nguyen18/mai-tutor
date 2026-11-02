@@ -14,7 +14,7 @@
 //
 // which-dialect is passed in, like ./entries.ts and ./words.ts, so this file doesn't pin its own copy.
 
-import type * as WhichDialect from 'npm:which-dialect@0.5.14'
+import type * as WhichDialect from 'npm:which-dialect@0.5.15'
 import { describeWord, type WordOption } from './words.ts'
 
 type WD = Pick<typeof WhichDialect, 'posName'>
