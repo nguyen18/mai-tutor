@@ -43,7 +43,7 @@ export async function shrinkImage(file: File): Promise<File> {
 // 2026-10-30) opens its own pop-up (components/WordFeedback.tsx) with the sentence started and the word
 // in the ticket's context.
 export type FeedbackKind = 'general' | 'word'
-export type FeedbackRequest = { summary: string; context: Record<string, string> }
+export type FeedbackRequest = { summary: string; context: Record<string, string>; details?: string }
 const OPEN_EVENT = 'mai:open-feedback'
 
 export function openFeedback(request: FeedbackRequest) {

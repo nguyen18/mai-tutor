@@ -41,8 +41,8 @@ type PopoverProps = {
   // Changes to this re-measure the box's position (its content changed size).
   contentKey?: string
   // A word box: ends with "Wrong definition/word?", which closes it and opens the feedback form about the
-  // word (context goes on the ticket).
-  report?: { word: string; context?: Record<string, string> }
+  // word (context goes on the ticket; sentence, the one it's in on the Journal, starts the details).
+  report?: { word: string; context?: Record<string, string>; sentence?: string }
   children: ReactNode
 }
 
@@ -172,7 +172,7 @@ export function Popover({
               </button>
             </div>
             {children}
-            {report && <WrongWordButton word={report.word} context={report.context} onOpen={close} />}
+            {report && <WrongWordButton word={report.word} context={report.context} sentence={report.sentence} onOpen={close} />}
           </div>
         </div>
       )}
