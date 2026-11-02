@@ -9,6 +9,8 @@
   --accent-soft: #e9e9f8;
   --on-accent: #ffffff;
   --blush: #f7dde2;
+  /* Words highlighted as one phrase on the Journal (held and dragged over). */
+  --phrase: #ffc4da;
   --translation: #c9221d;
   /* The graph paper behind every page: its lines, and the size of a square. */
   --grid: #e7e6f3;
@@ -60,6 +62,7 @@
   --accent-soft: #2b2d5e;
   --on-accent: #14152b;
   --blush: #4d2c3d;
+  --phrase: #8a3a62;
   --translation: #ff8f85;
   --grid: #222448;
   --sheet-grid: #303362;

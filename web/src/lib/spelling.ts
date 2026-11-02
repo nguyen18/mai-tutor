@@ -65,7 +65,15 @@ export type SpellingCheck = {
   lookups?: { words: Record<string, WordAlternatives>; english: Record<string, CheatsheetEntry | null> }
   /** Which Mai checked it (CHECK_VERSION); entries checked by an older one are checked again. */
   version?: string
+  /** Words the learner highlighted as one phrase (held and dragged over), with Mai's reading of them. */
+  phrases?: HeldPhrase[]
 }
+
+/**
+ * A highlighted phrase: offsets `a`–`b` in `review.text`, the learner's words there, and how Mai reads them
+ * as one piece (`reading`, once she has: "den tu" → "đến từ"; the learner may pick another).
+ */
+export type HeldPhrase = { a: number; b: number; text: string; reading?: string }
 
 /**
  * The which-dialect version the checks run on: the functions' deno.json pins and web/package.json. Bump it
@@ -87,7 +95,8 @@ export async function checkSpelling(target: TargetLanguage, input: string, extra
 /**
  * A new check of an entry with the learner's choices from its old one: accepted hints and word picks, in
  * sentences whose words didn't change, matched to the same change (by its words) or hint (by its words
- * and rule) in the new check, and kept words by their place in the sentence.
+ * and rule) in the new check, and kept words by their place in the sentence; highlighted phrases whose
+ * words are where they were.
  */
 export function carryOver(old: SpellingCheck | undefined, next: SpellingCheck): SpellingCheck {
   if (!old) return next
@@ -112,10 +121,13 @@ export function carryOver(old: SpellingCheck | undefined, next: SpellingCheck): 
     const at = hint ? after[si].hints.findIndex((h) => h.text === hint.text && h.rule === hint.rule) : -1
     return at >= 0 ? [`${si}:${at}`] : []
   })
+  // Highlighted phrases whose words are still in the same place.
+  const phrases = (old.phrases ?? []).filter((p) => next.review.text.slice(p.a, p.b) === p.text)
   return {
     ...next,
     ...(Object.keys(wordPicks).length ? { wordPicks } : {}),
     ...(acceptedHints.length ? { acceptedHints } : {}),
+    ...(phrases.length ? { phrases } : {}),
   }
 }
 

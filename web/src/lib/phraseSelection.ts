@@ -1,22 +1,21 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 
-// Holding a word and dragging over others selects them as one phrase (owner's request 2026-11-02: "den tu"
+// Holding a word and sliding over others highlights them as one phrase (owner's request 2026-11-02: "den tu"
 // should be read as "đến từ", not two words). Words are buttons (word boxes), so the browser's own text
 // selection can't reach across them: this does it with pointer events. Each selectable word is an element
 // with class `sel-unit` and `data-a`/`data-b`, its start and end offsets in the checked text.
+//
+// While the finger moves, the words are tinted straight in the DOM (class `sel-live`), not through React
+// state, so the drag stays smooth however long the entry is (owner's feedback: "super clunky").
 
 // How long a press must last before it selects, and how far the finger may move before that (a scroll).
-const HOLD_MS = 450
-const MOVE_TOLERANCE = 10
+const HOLD_MS = 250
+const MOVE_TOLERANCE = 8
 
 export type TextRange = { a: number; b: number }
 
-/**
- * Selection inside `root`: `range` while dragging (to highlight), and `onSelect` with the final range when
- * the pointer is lifted. A short tap still opens the word's own box; a held press doesn't.
- */
+/** Selection inside `root`; `onSelect` gets the range when the pointer is lifted. A short tap opens the word. */
 export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect: (range: TextRange) => void) {
-  const [range, setRange] = useState<TextRange | null>(null)
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
     onSelectRef.current = onSelect
@@ -36,11 +35,19 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
 
     const unitOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>('.sel-unit') : null)
     const rangeOf = (u: HTMLElement): TextRange => ({ a: Number(u.dataset.a), b: Number(u.dataset.b) })
+    const paint = (r: TextRange | null) => {
+      for (const u of el.querySelectorAll<HTMLElement>('.sel-unit')) {
+        const { a, b } = rangeOf(u)
+        u.classList.toggle('sel-live', Boolean(r && a >= r.a && b <= r.b))
+      }
+    }
     const extendTo = (u: HTMLElement) => {
       if (!anchor) return
       const r = rangeOf(u)
-      current = { a: Math.min(anchor.a, r.a), b: Math.max(anchor.b, r.b) }
-      setRange(current)
+      const next = { a: Math.min(anchor.a, r.a), b: Math.max(anchor.b, r.b) }
+      if (current && next.a === current.a && next.b === current.b) return
+      current = next
+      paint(current)
     }
     const reset = () => {
       window.clearTimeout(timer)
@@ -71,6 +78,7 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
         if (Math.hypot(e.clientX - x, e.clientY - y) > MOVE_TOLERANCE) reset()
         return
       }
+      // Between words (a space, the margin) the selection stays as it is.
       const unit = unitOf(document.elementFromPoint(e.clientX, e.clientY))
       if (unit && el.contains(unit)) extendTo(unit)
     }
@@ -79,11 +87,12 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
         swallowClick = true
         onSelectRef.current(current)
       }
+      paint(null)
       reset()
     }
     const onCancel = () => {
+      paint(null)
       reset()
-      setRange(null)
     }
     // While selecting, a finger's drag selects instead of scrolling the page (needs a non-passive listener).
     const onTouchMove = (e: TouchEvent) => {
@@ -118,6 +127,4 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
       el.removeEventListener('contextmenu', onContextMenu)
     }
   }, [root])
-
-  return { range, clear: () => setRange(null) }
 }
