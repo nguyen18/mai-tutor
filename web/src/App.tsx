@@ -8,6 +8,8 @@ import { WordFeedbackDialog } from './components/WordFeedback'
 import { SignInNudge } from './components/SignInNudge'
 import { startSync } from './lib/sync'
 import { useApplyTheme } from './lib/theme'
+import { useTargetLanguage } from './lib/languages'
+import { useAutoDownload } from './lib/offline/client'
 import './App.css'
 
 // The Cheatsheet carries ~100 KB of dictionary data, so it loads only when opened.
@@ -24,6 +26,9 @@ const MENU_ITEMS: { route: Route; label: string }[] = [
 function App() {
   const route = useRoute()
   useApplyTheme()
+  // The language being learned is kept on the device, and updated, so Mai is fast (lib/offline).
+  const [target] = useTargetLanguage()
+  useAutoDownload(target.code)
 
   // Syncing with the user's account, when they're signed in. The Supabase client loads in the background.
   useEffect(() => {
