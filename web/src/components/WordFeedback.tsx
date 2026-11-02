@@ -27,7 +27,7 @@ export function WrongWordButton({ word, context, sentence, onOpen }: { word: str
         openFeedback({
           summary: `Wrong definition/word: “${word}”`,
           context: { word, ...context, targetLanguage },
-          details: sentence?.trim() ? `Sentence: “${sentence.trim()}”\n\nWhat it should be: ` : undefined,
+          details: sentence?.trim() ? `Sentence: “${sentence.trim()}”\n\nWhat it should be in English: ` : undefined,
         })
       }}
     >
