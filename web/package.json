@@ -17,7 +17,7 @@
     "fflate": "^0.8.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "which-dialect": "^0.5.15"
+    "which-dialect": "^0.5.16"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

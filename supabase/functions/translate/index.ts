@@ -17,7 +17,7 @@ import { makeEntry, type Entry } from '../_shared/entries.ts'
 // Bump with the which-dialect import in deno.json, or the data versions (_shared/versions.ts): rows from
 // another version aren't reused. (Left at 0.5.11 for 0.5.12, which only sped up the checker's language
 // detection and translates exactly the same, so the saved rows stay valid.)
-const VERSION = '0.5.15+en0.2.1+vi0.2.1+es0.2.4'
+const VERSION = '0.5.16+en0.2.1+vi0.2.2+es0.2.4'
 const MAX_WORDS = 25
 const MAX_WORD_LENGTH = 60
 // Words translated at once: each loads several data files, so a few in parallel is faster without

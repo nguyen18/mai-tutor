@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url'
 // 0.5.0, named after the package version: 0.1.1, 0.2.0, 0.3.0, 0.4.0, are unused and can be deleted.)
 const DATA_SETS: { lang: string; version: string }[] = [
   { lang: 'en', version: '0.2.1' },
-  { lang: 'vi', version: '0.2.1' },
+  { lang: 'vi', version: '0.2.2' },
   { lang: 'es', version: '0.2.4' },
 ]
 const BUCKET = 'which-dialect'

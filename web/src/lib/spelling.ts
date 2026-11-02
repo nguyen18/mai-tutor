@@ -108,7 +108,7 @@ export function reviewParts(review: Review): PhrasePart[] {
  * with them; entries checked by another version are checked again in the background (Journal), keeping the
  * learner's picks where the sentence didn't change (carryOver).
  */
-export const CHECK_VERSION = 'which-dialect 0.5.15'
+export const CHECK_VERSION = 'which-dialect 0.5.16'
 
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
   // The pronoun check needs the language's pronoun table (TargetLanguage.pronouns).
