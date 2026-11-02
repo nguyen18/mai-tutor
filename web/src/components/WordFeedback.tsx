@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FeedbackForm, type FeedbackState } from './FeedbackForm'
 import { onOpenFeedback, openFeedback, type FeedbackRequest } from '../lib/feedback'
+import { TARGET_LANGUAGES, useTargetLanguage } from '../lib/languages'
 import { useSyncStatus } from '../lib/sync'
 
 // "Wrong definition/word?" in word boxes (owner's request 2026-10-30): its own feedback pop-up, apart from
@@ -11,14 +12,18 @@ import { useSyncStatus } from '../lib/sync'
 // like the form. Closes the box (which unmounts this button), so the pop-up lives in WordFeedbackDialog.
 export function WrongWordButton({ word, context, onOpen }: { word: string; context?: Record<string, string>; onOpen: () => void }) {
   const status = useSyncStatus()
+  const [target] = useTargetLanguage()
   if (status.state === 'signed-out') return null
+  // The ticket's Language: the word's own (an older journal entry can be in another language than the
+  // current one), or for an English word on the Cheatsheet, the one being learned.
+  const targetLanguage = TARGET_LANGUAGES.find((t) => t.code === context?.language)?.language ?? target.language
   return (
     <button
       type="button"
       className="link wrong-word"
       onClick={() => {
         onOpen()
-        openFeedback({ summary: `Wrong definition/word: “${word}”`, context: { word, ...context } })
+        openFeedback({ summary: `Wrong definition/word: “${word}”`, context: { word, ...context, targetLanguage } })
       }}
     >
       Wrong definition/word?

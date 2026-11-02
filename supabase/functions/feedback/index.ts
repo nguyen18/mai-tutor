@@ -4,7 +4,8 @@
 // - summary: the one-sentence feedback, the ticket's title (required, up to MAX_SUMMARY characters)
 // - details: more details, the ticket page's text (optional)
 // - image:   one screenshot or picture (optional; the browser has already shrunk it to a JPEG)
-// - context: JSON with where it was sent from (page, screen, browser), shown at the bottom of the ticket
+// - context: JSON with where it was sent from (page, screen, browser), shown at the bottom of the ticket;
+//            a word box's also has targetLanguage, the ticket's Language (owner's request 2026-11-01)
 // - kind:    which form sent it: 'general' (the 💬 button) or 'word' (a word box's "Wrong definition/word?");
 //            the ticket's Issue (owner's request 2026-10-30). Missing or unknown: general.
 //
@@ -13,7 +14,7 @@
 // nothing is lost if Notion fails. The reporter's email comes from their sign-in, not from the form.
 //
 // The ticket: Name = summary, Status = Not started, Issue = General or Word/definition (from kind), with a
-// ⭐ or 🌱 page icon, User reported = the email, Assign = the owner (who Notion then notifies); the page
+// ⭐ or 🌱 page icon, Language = the language being learned (word boxes only), User reported = the email, Assign = the owner (who Notion then notifies); the page
 // holds the details, the image, and the context. Secrets: NOTION_TOKEN (the "Mai feedback" internal
 // integration, connected to the mai tutor page), NOTION_DATA_SOURCE_ID (the "user tickets" board),
 // NOTION_ASSIGNEE_ID (the owner's Notion user id).
@@ -31,6 +32,9 @@ const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 
 const ISSUES: Record<string, string> = { general: 'General', word: 'Word/definition' }
 // The ticket page's icon for each form (owner's request 2026-10-30).
 const ICONS: Record<string, string> = { general: '⭐', word: '🌱' }
+// The ticket's Language (a select on the board). The form's value is only used if it's one of these, since
+// the names must match the board's options exactly, or Notion adds new ones.
+const LANGUAGES = ['Vietnamese', 'Spanish', 'Japanese']
 // Tickets a user can send in an hour: plenty for reporting many words in a row (5 was too few, owner's
 // feedback 2026-10-30), still a stop for a runaway script. Only the owner can sign up for now; lower it
 // when others can.
@@ -80,6 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
   const sentKind = String(form.get('kind') ?? '')
   const kind = Object.hasOwn(ISSUES, sentKind) ? sentKind : 'general'
   context.kind = kind
+  const language = LANGUAGES.find((name) => name === context.targetLanguage) ?? null
 
   if (!summary) return json({ error: 'Write your feedback in a sentence first.' }, 400)
   if (summary.length > MAX_SUMMARY) return json({ error: `Keep the first box under ${MAX_SUMMARY} characters.` }, 400)
@@ -107,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   // Then the ticket.
   try {
-    const ticket = await createTicket({ summary, details, image, email: user.email, context, issue: ISSUES[kind], icon: ICONS[kind] })
+    const ticket = await createTicket({ summary, details, image, email: user.email, context, issue: ISSUES[kind], icon: ICONS[kind], language })
     await db.from('feedback').update({ notion_url: ticket }).eq('id', id)
     return json({ id, ticket })
   } catch (e) {
@@ -170,6 +175,7 @@ async function createTicket(f: {
   context: Record<string, unknown>
   issue: string
   icon: string
+  language: string | null
 }): Promise<string> {
   const imageId = f.image ? await uploadImage(f.image) : null
   const contextLines = Object.entries(f.context)
@@ -201,6 +207,7 @@ async function createTicket(f: {
         Status: { status: { name: 'Not started' } },
         'User reported': { email: f.email },
         Issue: { select: { name: f.issue } },
+        ...(f.language ? { Language: { select: { name: f.language } } } : {}),
         ...(assignee ? { Assign: { people: [{ id: assignee }] } } : {}),
       },
       children,
