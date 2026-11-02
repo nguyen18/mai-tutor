@@ -7,6 +7,8 @@ import { backendConfigured } from '../lib/backend'
 import { nowLocal, useJournal, useJournalExtraChecks, type JournalEntry } from '../lib/journal'
 import { Popover } from '../components/Popover'
 import {
+  CHECK_VERSION,
+  carryOver,
   changeKey,
   keepCapital,
   keptWordKey,
@@ -33,6 +35,7 @@ import { OfflineHint } from '../components/OfflineHint'
 import { loadWordOptions, type WordAlternatives } from '../lib/wordOptions'
 import { currentCheck, useWordLookups } from '../lib/wordLookups'
 import { warmUp } from '../lib/offline/client'
+import { usePhraseSelection, type TextRange } from '../lib/phraseSelection'
 
 // The journal: entries written in the target language (English where the learner doesn't know a word yet),
 // latest on top. Each shows the user's own words untouched (blue), and underneath, Mai's corrected copy
@@ -68,10 +71,11 @@ export function Journal() {
     if (!entry.text || !backendConfigured) return
     setChecks((c) => ({ ...c, [entry.id]: 'checking' }))
     try {
-      const check = await checkSpelling(targetById(entry.targetId), entry.text, extraChecks)
-      // Saved onto the entry as it is now, unless its words changed while Mai was checking.
+      const fresh = await checkSpelling(targetById(entry.targetId), entry.text, extraChecks)
+      // Saved onto the entry as it is now, unless its words changed while Mai was checking, with the
+      // learner's picks and accepted tips from the last check where those sentences didn't change.
       const latest = entriesRef.current?.find((e) => e.id === entry.id)
-      if (latest && latest.text === entry.text) await save({ ...latest, check })
+      if (latest && latest.text === entry.text) await save({ ...latest, check: carryOver(latest.check, fresh) })
       setChecks((c) => {
         const next = { ...c }
         delete next[entry.id]
@@ -81,6 +85,11 @@ export function Journal() {
       setChecks((c) => ({ ...c, [entry.id]: 'failed' }))
     }
   }
+
+  const runCheckRef = useRef(runCheck)
+  useLayoutEffect(() => {
+    runCheckRef.current = runCheck
+  })
 
   // Captions are checked one by one (a few words each), and saved onto the entry as it is by then, for
   // captions that didn't change while Mai was checking.
@@ -99,6 +108,29 @@ export function Journal() {
       return r ? { ...i, captionCheck: r.check! } : i
     })
     await save({ ...latest, items })
+  }
+
+  // Entries checked by an older Mai (CHECK_VERSION) are checked again, one at a time, in the month shown:
+  // a dictionary update fixes old corrections too ("suỹ" was "quỹ"; now "suỹ nghĩ" → "suy nghĩ").
+  useEffect(() => {
+    if (!backendConfigured || !entries || Object.values(checks).includes('checking')) return
+    const stale = entries.find((e) => {
+      const check = currentCheck(e)
+      return e.when.startsWith(month) && check && check.version !== CHECK_VERSION && !checks[e.id]
+    })
+    if (!stale) return
+    // After this render (runCheck sets state), through a ref: runCheck is recreated every render.
+    const id = window.setTimeout(() => void runCheckRef.current(stale))
+    return () => window.clearTimeout(id)
+  }, [entries, checks, month])
+
+  // The learner's words from `range` of the checked text replaced (a held-and-dragged phrase's "Use this"),
+  // then checked again.
+  const replaceText = async (entry: JournalEntry, range: TextRange, text: string) => {
+    const base = entry.check?.review.text ?? entry.text
+    const updated = { ...entry, text: base.slice(0, range.a) + text + base.slice(range.b) }
+    await save(updated)
+    await runCheck(updated)
   }
 
   const onSave = async (entry: JournalEntry) => {
@@ -213,6 +245,7 @@ export function Journal() {
                   onPickWord={(key, word) =>
                     entry.check && save({ ...entry, check: { ...entry.check, wordPicks: { ...entry.check.wordPicks, [key]: word } } })
                   }
+                  onReplaceText={(range, text) => replaceText(entry, range, text)}
                   onEdit={() => {
                     setEditing({ entry })
                     window.scrollTo(0, 0)
@@ -236,6 +269,7 @@ type CardProps = {
   extraChecks: boolean
   onAcceptHint: (key: string) => void
   onPickWord: (key: string, word: string) => void
+  onReplaceText: (range: TextRange, text: string) => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -273,7 +307,7 @@ function useGridBottomRow(paperRef: RefObject<HTMLDivElement | null>) {
   })
 }
 
-function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onEdit, onDelete }: CardProps) {
+function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onReplaceText, onEdit, onDelete }: CardProps) {
   const paperRef = useRef<HTMLDivElement>(null)
   useGridBottomRow(paperRef)
   const [confirming, setConfirming] = useState(false)
@@ -332,7 +366,7 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
             text={entry.text}
             items={entry.items}
             lang={lang.code}
-            richText={check && <AnnotatedText check={check} onPickWord={onPickWord} target={lang} />}
+            richText={check && <AnnotatedText check={check} onPickWord={onPickWord} onReplaceText={onReplaceText} target={lang} />}
           />
         )}
 
@@ -428,6 +462,8 @@ function Correction({ check, state, onCheck, extraChecks, onAcceptHint, target }
 type AnnotatedProps = {
   check: SpellingCheck
   onPickWord: (key: string, word: string) => void
+  /** Replaces the learner's words in `range` of the checked text (a selected phrase's "Use this"). */
+  onReplaceText?: (range: TextRange, text: string) => void
   target: TargetLanguage
 }
 
@@ -435,11 +471,22 @@ type AnnotatedProps = {
  * The learner's own text with Mai's corrections written above the words they replace, like a teacher's red
  * pen (owner's request 2026-10-01): English words are crossed out in red with the target-language word
  * over them; other fixes ("hom nay" → "hôm nay") are written over the original. Every word can be tapped:
- * corrections for why and other words to pick, the rest for their meaning and alternatives.
+ * corrections for why and other words to pick, the rest for their meaning and alternatives. Holding a word
+ * and dragging over others selects them as one phrase, which Mai reads again as a whole (PhraseBox).
  */
-export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
+export function AnnotatedText({ check, onPickWord, onReplaceText, target }: AnnotatedProps) {
   const review = withAcceptedHints(check)
   const picks = check.wordPicks ?? {}
+  const rootRef = useRef<HTMLSpanElement>(null)
+  const [phrase, setPhrase] = useState<TextRange | null>(null)
+  const selection = usePhraseSelection(rootRef, setPhrase)
+  const shownRange = phrase ?? selection.range
+  // Each word, wrapped with its place in the checked text (data-a, data-b) for selecting phrases.
+  const unit = (key: string, a: number, b: number, node: ReactNode) => (
+    <span key={key} className={shownRange && a >= shownRange.a && b <= shownRange.b ? 'sel-unit selected' : 'sel-unit'} data-a={a} data-b={b}>
+      {node}
+    </span>
+  )
   const out: ReactNode[] = []
   // Words are buttons, and browsers may break a line after one, even before a full stop: punctuation right
   // after a word stays with it ("học." doesn't become "học" + "." on the next line).
@@ -465,16 +512,21 @@ export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
     for (const seg of alignSentence(sentence)) {
       if (seg.change) {
         const change = seg.change
+        const a = sentence.start + seg.start
         out.push(
-          <ChangeMark
-            key={`${si}-${seg.start}`}
-            change={change}
-            original={seg.text}
-            sentence={sentence.corrected}
-            shown={shownWord(change, picks[keyOf(change)])}
-            onPick={(word) => onPickWord(keyOf(change), word)}
-            target={target}
-          />,
+          unit(
+            `${si}-${seg.start}`,
+            a,
+            a + seg.text.length,
+            <ChangeMark
+              change={change}
+              original={seg.text}
+              sentence={sentence.corrected}
+              shown={shownWord(change, picks[keyOf(change)])}
+              onPick={(word) => onPickWord(keyOf(change), word)}
+              target={target}
+            />,
+          ),
         )
         continue
       }
@@ -485,15 +537,128 @@ export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
           continue
         }
         const key = keptWordKey(si, start)
+        const a = sentence.start + start
         out.push(
-          <WordMark key={`${si}-${start}`} word={t.text} sentence={sentence.corrected} pick={picks[key]} onPick={(word) => onPickWord(key, word)} target={target} />,
+          unit(
+            `${si}-${start}`,
+            a,
+            a + t.text.length,
+            <WordMark word={t.text} sentence={sentence.corrected} pick={picks[key]} onPick={(word) => onPickWord(key, word)} target={target} />,
+          ),
         )
       }
     }
     at = sentence.end
   })
   if (at < review.text.length) out.push(review.text.slice(at))
-  return <>{out}</>
+  return (
+    <span ref={rootRef} className="annotated-root">
+      {out}
+      {phrase && (
+        <PhraseBox
+          text={review.text.slice(phrase.a, phrase.b)}
+          target={target}
+          onUse={onReplaceText && ((text) => onReplaceText(phrase, text))}
+          onClose={() => {
+            setPhrase(null)
+            selection.clear()
+          }}
+        />
+      )}
+    </span>
+  )
+}
+
+type PhraseBoxProps = {
+  /** The learner's words, as written. */
+  text: string
+  target: TargetLanguage
+  /** Puts Mai's reading in place of the words; none when the entry can't be changed here. */
+  onUse?: (text: string) => void
+  onClose: () => void
+}
+
+// Words held and dragged over, read again by Mai as one piece (owner's request 2026-11-02): "den tu" is
+// "đến từ" (come from), where word by word it was "đến" + "tư" (four); English words become the language's
+// ("go to bed" → "đi ngủ"). Shows Mai's reading and what it means (its dictionary or phrasebook meaning),
+// and "Use this" writes it into the entry, which is then checked again. A centered card on every screen.
+function PhraseBox({ text, target, onUse, onClose }: PhraseBoxProps) {
+  const [reading, setReading] = useState<{ text: string; meaning: WordOption | null } | null | undefined>(undefined)
+  const lang = target.code
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const check = await checkSpelling(target, text, false)
+        const read = check.review.corrected.trim()
+        // Meanings for a word or phrase; a whole sentence has none to show (word-options takes up to 60 letters).
+        const options = read.length <= 60 ? await loadWordOptions(target, read).catch(() => null) : null
+        if (!cancelled) setReading({ text: read, meaning: options?.word.meanings.length ? options.word : null })
+      } catch {
+        if (!cancelled) setReading(null)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [target, text])
+
+  const changed = reading && reading.text !== text.trim()
+  return (
+    <>
+      <span className="tip-backdrop phrase-backdrop" aria-hidden="true" onClick={onClose} />
+      <div className="tip pinned phrase-tip" role="dialog" aria-label={`“${text}”: Mai's reading`} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
+        <div className="tip-box">
+          <div className="tip-head">
+            <span className="cheat-word" lang={lang}>
+              {text}
+            </span>
+            <button type="button" className="tip-close" aria-label="Close" onClick={onClose} autoFocus>
+              ✕
+            </button>
+          </div>
+          {reading === undefined ? (
+            <p className="muted">Mai is reading “{text}”…</p>
+          ) : reading === null ? (
+            <p className="muted">
+              Couldn't read “{text}”.
+              <OfflineHint target={target} />
+            </p>
+          ) : (
+            <>
+              <p className="tip-note-label">{changed ? 'Mai reads it as' : 'Mai reads it as written'}</p>
+              <p className="phrase-reading" lang={lang}>
+                <strong>{reading.text}</strong>
+              </p>
+              {reading.meaning && (
+                <div className="tip-meanings">
+                  {reading.meaning.meanings.map((m, i) => (
+                    <p key={i} className="tip-meaning">
+                      <span className="pos-name">{m.posName}</span> {m.gloss}
+                      {m.regions?.length ? <span className="region-badge"> {m.regions.join(', ')}</span> : null}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {changed && onUse && (
+                <button
+                  type="button"
+                  className="chip phrase-use"
+                  onClick={() => {
+                    onUse(reading.text)
+                    onClose()
+                  }}
+                >
+                  Use this
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  )
 }
 
 type ChangeMarkProps = {

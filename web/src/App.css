@@ -697,6 +697,70 @@ button.tip-option:focus-visible {
   }
 }
 
+/* Holding a word and dragging over others selects a phrase (lib/phraseSelection.ts): no callout, magnifier or
+   text selection from the browser on a long press, and the selected words are tinted. */
+.annotated-root .sel-unit {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.annotated-root .sel-unit.selected {
+  background: rgb(var(--shade) / 0.12);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgb(var(--shade) / 0.12);
+}
+
+/* The selected phrase's box (PhraseBox in Journal.tsx): a centered card on every screen, like the word
+   boxes on a phone. */
+.tip.phrase-tip {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  z-index: 50;
+  width: min(380px, calc(100vw - 32px));
+  padding: 0;
+  transform: translate(-50%, -50%);
+}
+
+.tip-backdrop.phrase-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(var(--shade) / 0.35);
+  cursor: pointer;
+}
+
+.tip.phrase-tip .tip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -14px 8px;
+  padding: 0 8px 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tip.phrase-tip button.tip-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+}
+
+.phrase-reading {
+  font-size: 1.15rem;
+}
+
+button.phrase-use {
+  margin-top: 4px;
+}
+
 /* Custom lists */
 
 button.add-list {

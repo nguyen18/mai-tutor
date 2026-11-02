@@ -63,7 +63,16 @@ export type SpellingCheck = {
    * Cheatsheet entry of each English word Mai translated (null: none).
    */
   lookups?: { words: Record<string, WordAlternatives>; english: Record<string, CheatsheetEntry | null> }
+  /** Which Mai checked it (CHECK_VERSION); entries checked by an older one are checked again. */
+  version?: string
 }
+
+/**
+ * The which-dialect version the checks run on: the functions' deno.json pins and web/package.json. Bump it
+ * with them; entries checked by another version are checked again in the background (Journal), keeping the
+ * learner's picks where the sentence didn't change (carryOver).
+ */
+export const CHECK_VERSION = 'which-dialect 0.5.14'
 
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
   // The pronoun check needs the language's pronoun table (TargetLanguage.pronouns).
@@ -72,7 +81,42 @@ export async function checkSpelling(target: TargetLanguage, input: string, extra
   const review = await viaMai<Review>(target, { op: 'review', target, text: input, checks }, () =>
     callFunction<Review>('check-spelling', { target: target.id, text: input, checks }, 'Checking the spelling failed'),
   )
-  return { input, extraChecks, review, checkedAt: new Date().toISOString() }
+  return { input, extraChecks, review, checkedAt: new Date().toISOString(), version: CHECK_VERSION }
+}
+
+/**
+ * A new check of an entry with the learner's choices from its old one: accepted hints and word picks, in
+ * sentences whose words didn't change, matched to the same change (by its words) or hint (by its words
+ * and rule) in the new check, and kept words by their place in the sentence.
+ */
+export function carryOver(old: SpellingCheck | undefined, next: SpellingCheck): SpellingCheck {
+  if (!old) return next
+  const before = old.review.sentences
+  const after = next.review.sentences
+  const same = (si: number) => before[si] !== undefined && after[si] !== undefined && before[si].original === after[si].original
+  const wordPicks: Record<string, string> = {}
+  for (const [key, word] of Object.entries(old.wordPicks ?? {})) {
+    const kept = /^(\d+)@(\d+)$/.exec(key)
+    if (kept) {
+      if (same(Number(kept[1]))) wordPicks[key] = word
+      continue
+    }
+    const [si, ci] = key.split(':').map(Number)
+    const change = same(si) ? before[si].changes[ci] : undefined
+    const at = change ? after[si].changes.findIndex((c) => c.from === change.from) : -1
+    if (at >= 0) wordPicks[changeKey(si, at)] = word
+  }
+  const acceptedHints = (old.acceptedHints ?? []).flatMap((key) => {
+    const [si, hi] = key.split(':').map(Number)
+    const hint = same(si) ? before[si].hints[hi] : undefined
+    const at = hint ? after[si].hints.findIndex((h) => h.text === hint.text && h.rule === hint.rule) : -1
+    return at >= 0 ? [`${si}:${at}`] : []
+  })
+  return {
+    ...next,
+    ...(Object.keys(wordPicks).length ? { wordPicks } : {}),
+    ...(acceptedHints.length ? { acceptedHints } : {}),
+  }
 }
 
 /** How each kind of change is named and colored (`data-kind` in CSS). */
