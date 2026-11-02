@@ -77,10 +77,10 @@ export function OfflineCard({ target }: { target: TargetLanguage }) {
       <div className="card-head">
         <h2>Use Mai offline</h2>
       </div>
+      {/* Owner's wording, 2026-11-02. */}
       <p className="muted">
-        Download a language and Mai checks your journal on this device, with or without a connection: corrections,
-        captions, word boxes and sentence frames, usually in about a second. Best on wifi. Each dialect is included.
-        Saved on this device only.
+        Download languages to have translations work offline. Recommended for faster translations! Saved on this
+        device only.
       </p>
       {!loaded ? (
         <p className="muted">Checking what's on this device…</p>
