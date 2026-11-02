@@ -470,6 +470,7 @@ export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
             key={`${si}-${seg.start}`}
             change={change}
             original={seg.text}
+            sentence={sentence.corrected}
             shown={shownWord(change, picks[keyOf(change)])}
             onPick={(word) => onPickWord(keyOf(change), word)}
             target={target}
@@ -485,7 +486,7 @@ export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
         }
         const key = keptWordKey(si, start)
         out.push(
-          <WordMark key={`${si}-${start}`} word={t.text} pick={picks[key]} onPick={(word) => onPickWord(key, word)} target={target} />,
+          <WordMark key={`${si}-${start}`} word={t.text} sentence={sentence.corrected} pick={picks[key]} onPick={(word) => onPickWord(key, word)} target={target} />,
         )
       }
     }
@@ -497,6 +498,8 @@ export function AnnotatedText({ check, onPickWord, target }: AnnotatedProps) {
 
 type ChangeMarkProps = {
   change: ReviewChange
+  /** The corrected sentence it's in, for a "Wrong definition/word?" report. */
+  sentence?: string
   /** The learner's words the change replaces: the correction is written above them. */
   original?: string
   /** The word shown: the learner's pick, or the review's. */
@@ -509,7 +512,7 @@ type ChangeMarkProps = {
 // and the other words it could be, to star the one that fits. English words Mai translated show every
 // meaning of the English word with its translations (the meaning holding Mai's word first, since that's
 // the one the sentence uses); other changes show the checker's alternatives ("khong": không, khổng, khống).
-function ChangeMark({ change, original, shown, onPick, target }: ChangeMarkProps) {
+function ChangeMark({ change, original, sentence, shown, onPick, target }: ChangeMarkProps) {
   const kind = kindOf(change.kind)
   const lang = target.code
   const hasOptions = (change.options?.length ?? 0) > 1
@@ -546,7 +549,7 @@ function ChangeMark({ change, original, shown, onPick, target }: ChangeMarkProps
       lang={lang}
       align="start"
       contentKey={shown}
-      report={{ word: shown || change.from, context: { language: lang, written: change.from, change: change.kind } }}
+      report={{ word: shown || change.from, sentence, context: { language: lang, written: change.from, change: change.kind } }}
     >
       <p className="change-why">
         <span className="change-kind" data-kind={kind.color}>
@@ -755,12 +758,12 @@ function MeantInTarget({ word, shown, onPick, target }: { word: string; shown: s
   )
 }
 
-type WordMarkProps = { word: string; pick?: string; onPick: (word: string) => void; target: TargetLanguage }
+type WordMarkProps = { word: string; sentence?: string; pick?: string; onPick: (word: string) => void; target: TargetLanguage }
 
 // A word Mai left as it is. Hover (or tap) for a box like the Cheatsheet's: what it means, the same letters
 // with other accents (a real word with the wrong tone passes the spellchecker), and other words with the
 // same meaning, to star another one. A pick shows in place of the word, tinted.
-function WordMark({ word, pick, onPick, target }: WordMarkProps) {
+function WordMark({ word, sentence, pick, onPick, target }: WordMarkProps) {
   const shown = pick === undefined ? word : keepCapital(word, pick)
   const changed = shown.toLowerCase() !== word.toLowerCase()
   return (
@@ -782,7 +785,7 @@ function WordMark({ word, pick, onPick, target }: WordMarkProps) {
       lang={target.code}
       align="start"
       contentKey={shown}
-      report={{ word: shown, context: { language: target.code, written: word } }}
+      report={{ word: shown, sentence, context: { language: target.code, written: word } }}
     >
       <WordAlternativesBox word={word} shown={shown} onPick={onPick} target={target} />
     </Popover>
