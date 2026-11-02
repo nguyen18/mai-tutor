@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
 
-// Holding a word and sliding over others highlights them as one phrase (owner's request 2026-11-02: "den tu"
+// Pressing a word and dragging over others highlights them as one phrase (owner's request 2026-11-02: "den tu"
 // should be read as "đến từ", not two words). Words are buttons (word boxes), so the browser's own text
 // selection can't reach across them: this does it with pointer events. Each selectable word is an element
 // with class `sel-unit` and `data-a`/`data-b`, its start and end offsets in the checked text.
@@ -8,13 +8,15 @@ import { useEffect, useRef, type RefObject } from 'react'
 // While the finger moves, the words are tinted straight in the DOM (class `sel-live`), not through React
 // state, so the drag stays smooth however long the entry is (owner's feedback: "super clunky").
 
-// How long a press must last before it selects, and how far the finger may move before that (a scroll).
-const HOLD_MS = 250
-const MOVE_TOLERANCE = 8
+// How far the pointer moves before a press becomes a drag (less is a tap, which opens the word's box). A finger
+// moving more up or down than sideways is scrolling the page (the sheet is `touch-action: pan-y`); sideways
+// it selects, and once selecting it can go to other lines. A mouse selects in any direction. No hold: the
+// owner wanted a click-and-drag on the phone as on a computer.
+const DRAG_START = 6
 
 export type TextRange = { a: number; b: number }
 
-/** Selection inside `root`; `onSelect` gets the range when the pointer is lifted. A short tap opens the word. */
+/** Selection inside `root`; `onSelect` gets the range when the pointer is lifted. A tap still opens the word. */
 export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect: (range: TextRange) => void) {
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
@@ -24,7 +26,6 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
   useEffect(() => {
     const el = root.current
     if (!el) return
-    let timer = 0
     let pressed: HTMLElement | null = null
     let x = 0
     let y = 0
@@ -50,7 +51,6 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
       paint(current)
     }
     const reset = () => {
-      window.clearTimeout(timer)
       pressed = null
       anchor = null
       current = null
@@ -64,19 +64,17 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
       pressed = unit
       x = e.clientX
       y = e.clientY
-      timer = window.setTimeout(() => {
-        if (!pressed) return
-        anchor = rangeOf(pressed)
-        extendTo(pressed)
-        navigator.vibrate?.(10)
-      }, HOLD_MS)
     }
     const onMove = (e: PointerEvent) => {
       if (!pressed) return
       if (!anchor) {
-        // Moved before the hold: a scroll or an ordinary drag, not a selection.
-        if (Math.hypot(e.clientX - x, e.clientY - y) > MOVE_TOLERANCE) reset()
-        return
+        const dx = Math.abs(e.clientX - x)
+        const dy = Math.abs(e.clientY - y)
+        if (Math.max(dx, dy) < DRAG_START) return
+        // A finger going up or down is scrolling the page, not selecting.
+        if (e.pointerType !== 'mouse' && dy > dx) return reset()
+        anchor = rangeOf(pressed)
+        extendTo(pressed)
       }
       // Between words (a space, the margin) the selection stays as it is.
       const unit = unitOf(document.elementFromPoint(e.clientX, e.clientY))
@@ -117,7 +115,6 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
     el.addEventListener('click', onClick, true)
     el.addEventListener('contextmenu', onContextMenu)
     return () => {
-      window.clearTimeout(timer)
       el.removeEventListener('pointerdown', onDown)
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)

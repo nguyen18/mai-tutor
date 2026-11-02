@@ -740,6 +740,10 @@ button.tip-trigger.phrase-mark .word-text {
   border-top: 1px solid var(--border);
 }
 
+.phrase-part-head {
+  margin-bottom: 4px;
+}
+
 .phrase-actions {
   display: flex;
   flex-wrap: wrap;

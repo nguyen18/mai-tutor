@@ -10,7 +10,7 @@ import {
   CHECK_VERSION,
   carryOver,
   pickKeysIn,
-  reviewWords,
+  reviewParts,
   changeKey,
   keepCapital,
   keptWordKey,
@@ -25,6 +25,7 @@ import {
   wordTokens,
   withAcceptedHints,
   type HeldPhrase,
+  type PhrasePart,
   type SpellingCheck,
   type WordOption,
   type ReviewChange,
@@ -153,7 +154,7 @@ export function Journal() {
     try {
       const { review } = await checkSpelling(targetById(entry.targetId), text, false)
       const reading = review.corrected.trim()
-      const parts = reviewWords(review)
+      const parts = reviewParts(review)
       await updatePhrases(entry.id, (ps) => ps.map((p) => (p.a === range.a && p.b === range.b && p.text === text ? { ...p, reading, parts } : p)))
     } catch {
       // Left without a reading: the box says Mai is still reading it, and removing and highlighting it again
@@ -749,12 +750,13 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
   )
 }
 
-type PhraseMeaningsProps = { reading: string; parts?: string[]; onPick: (reading: string) => void; target: TargetLanguage }
+type PhraseMeaningsProps = { reading: string; parts?: PhrasePart[]; onPick: (reading: string) => void; target: TargetLanguage }
 
 // What a highlighted phrase means: the phrase's own meanings and other words when the dictionary or the
-// phrasebook has it ("đến từ": come from), else each of its words in turn ("đi", "ăn kèm"), with their
-// meanings and choices; a choice replaces that word in Mai's reading, shown above the phrase (owner's request
-// 2026-11-02: a phrase read as written still gets a box like a word's).
+// phrasebook has it ("đến từ": come from), else each of the learner's words in turn, with what Mai reads it
+// as ("see" → "thấy") and that word's meanings and choices; a choice replaces it in Mai's reading, shown
+// above the phrase (owner's requests 2026-11-02: a phrase read as written still gets a box like a word's,
+// and the box names the words in the entry, not Mai's).
 function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps) {
   // A single word is its own box; a phrase is looked up whole first (word-options takes up to 60 letters).
   const single = !/\s/.test(reading)
@@ -774,7 +776,11 @@ function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps)
 
   if (whole === undefined) return <p className="muted">Looking up “{reading}”…</p>
   if (whole) return <WordAlternativesBox word={reading} shown={reading} onPick={onPick} target={target} tag="Mai's reading" />
-  const words = parts?.length ? parts : reading.split(/\s+/).filter((w) => /\p{L}/u.test(w))
+  // Phrases saved before parts had the learner's words (a list of Mai's words then) show Mai's words.
+  const list: PhrasePart[] = parts?.length
+    ? parts.map((p) => (typeof p === 'string' ? { text: p, read: p } : p))
+    : reading.split(/\s+/).filter((w) => /\p{L}/u.test(w)).map((w) => ({ text: w, read: w }))
+  const words = list.map((p) => p.read)
   // A word's choice goes in its place in the reading (the n-th time it's there, for words said twice).
   const replace = (i: number, pick: string) => {
     let from = 0
@@ -788,12 +794,18 @@ function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps)
   }
   return (
     <div className="phrase-parts">
-      {words.map((w, i) => (
-        <div key={`${i}-${w}`} className="phrase-part">
-          <p className="tip-note-label" lang={target.code}>
-            {w}
+      {list.map((p, i) => (
+        <div key={`${i}-${p.text}`} className="phrase-part">
+          <p className="phrase-part-head" lang={target.code}>
+            {p.text.toLowerCase() === p.read.toLowerCase() ? (
+              <strong>{p.text}</strong>
+            ) : (
+              <>
+                <s>{p.text}</s> → <strong>{p.read}</strong>
+              </>
+            )}
           </p>
-          <WordAlternativesBox word={w} shown={w} onPick={(pick) => replace(i, pick)} target={target} tag="Mai's reading" />
+          <WordAlternativesBox word={p.read} shown={p.read} onPick={(pick) => replace(i, pick)} target={target} tag="Mai's reading" />
         </div>
       ))}
     </div>

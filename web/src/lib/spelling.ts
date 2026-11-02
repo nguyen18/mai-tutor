@@ -79,15 +79,28 @@ export type HeldPhrase = {
   text: string
   reading?: string
   /**
-   * The reading's words, the dictionary's words of several syllables kept whole ("đi", "ăn kèm"): its box
-   * shows each one's meaning and choices when the phrase as a whole has none.
+   * The phrase's words as the learner wrote them (`text`) and as Mai reads each (`read`): a correction's
+   * words together ("see" → "thấy", "we'll see" → "để xem"), the dictionary's words of several syllables
+   * whole ("hôm nay"). Its box shows each one's meaning and choices when the phrase as a whole has none.
    */
-  parts?: string[]
+  parts?: PhrasePart[]
 }
 
-/** A checked text's words, as the page shows them: words of several syllables whole ("hôm nay"). */
-export function reviewWords(review: Review): string[] {
-  return review.sentences.flatMap((s) => wordTokens(s.corrected, s.words ?? []).filter((t) => t.word).map((t) => t.text))
+export type PhrasePart = { text: string; read: string }
+
+/** A checked text's words as written, each with what Mai reads it as (its correction's words, or itself). */
+export function reviewParts(review: Review): PhrasePart[] {
+  return review.sentences.flatMap((sentence) =>
+    alignSentence(sentence).flatMap((seg): PhrasePart[] =>
+      seg.change
+        ? seg.change.to
+          ? [{ text: seg.text, read: seg.change.to }]
+          : []
+        : wordTokens(seg.text, joinedWordsIn(seg.text, sentence))
+            .filter((t) => t.word)
+            .map((t) => ({ text: t.text, read: t.text })),
+    ),
+  )
 }
 
 /**
