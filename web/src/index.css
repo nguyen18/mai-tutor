@@ -9,6 +9,8 @@
   --accent-soft: #e9e9f8;
   --on-accent: #ffffff;
   --blush: #f7dde2;
+  /* Words highlighted as one phrase on the Journal (dragged over): the blush pink. */
+  --phrase: var(--blush);
   --translation: #c9221d;
   /* The graph paper behind every page: its lines, and the size of a square. */
   --grid: #e7e6f3;

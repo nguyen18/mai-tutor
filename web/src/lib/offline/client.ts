@@ -1,8 +1,9 @@
 // The page's side of Mai offline: which languages are on this device, downloading and removing them
-// (Settings), and `viaMai`, which runs a request in the worker when the language is downloaded and on the
-// backend otherwise. Per device: nothing here syncs to the account.
+// (Settings, and `useAutoDownload` for the language being learned), and `viaMai`, which runs a request in
+// the worker when the language is downloaded and on the backend otherwise. Per device: nothing here syncs
+// to the account.
 
-import { useSyncExternalStore } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { packId, packsFor, type PackRecord } from './packs'
 import type { Progress } from './download'
 import { getPacks } from './store'
@@ -94,6 +95,22 @@ export async function download(lang: string): Promise<void> {
       progress: Object.fromEntries(Object.entries(state.progress).filter(([l]) => !done(l))),
     })
   }
+}
+
+/**
+ * Keeps the language being learned, and English, on this device at the versions the app reads (owner's
+ * request 2026-11-02: everything is slow until it's downloaded, so it isn't left to Settings). Runs when the
+ * site opens and when the language changes: a missing package is downloaded, and one at an older version is
+ * replaced by the new one (the download removes other versions first). In the background; until it's done,
+ * requests go to the backend as before.
+ */
+export function useAutoDownload(lang: string): void {
+  useEffect(() => {
+    if (typeof Worker === 'undefined' || typeof indexedDB === 'undefined') return
+    void refresh().then(() => {
+      if (!isDownloaded(state.packs, lang)) void download(lang)
+    })
+  }, [lang])
 }
 
 export async function remove(lang: string): Promise<void> {

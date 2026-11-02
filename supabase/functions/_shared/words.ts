@@ -5,7 +5,7 @@
 // which-dialect is passed in (as the dictionary and posName), like _shared/entries.ts, so this file doesn't
 // pin its own copy of the package.
 
-import type * as WhichDialect from 'npm:which-dialect@0.5.14'
+import type * as WhichDialect from 'npm:which-dialect@0.5.16'
 
 export type OptionMeaning = { pos: string; posName: string; gloss: string; regions?: string[]; labels?: string[] }
 export type WordOption = { text: string; meanings: OptionMeaning[] }
@@ -41,7 +41,31 @@ export async function describeWord(
       })
     }
   }
+  if (!meanings.length && /\s/.test(text.trim())) meanings.push(...(await phraseMeanings(dictionary, text, allRegions)))
   return { text, meanings }
+}
+
+// How a phrase is matched in the phrasebook: case, spacing and the punctuation around it don't count (as
+// which-dialect's phraseKey).
+const phraseKey = (text: string) =>
+  text.normalize('NFC').toLowerCase().replace(/[’‘]/g, "'").replace(/^[\s"“”«».,!?¿¡…;:]+|[\s"“”«».,!?¿¡…;:]+$/g, '').replace(/\s+/g, ' ')
+
+/**
+ * Several words the dictionary has no entry for, from the language's everyday phrasebook: "đến từ" is
+ * "come from" (the Journal's held-and-dragged phrases, which are often not headwords).
+ */
+async function phraseMeanings(dictionary: WhichDialect.Dictionary, text: string, allRegions: number): Promise<OptionMeaning[]> {
+  const key = phraseKey(text)
+  const rows = await dictionary.phrases().catch(() => [])
+  return rows
+    .filter((r) => phraseKey(r.text) === key)
+    .slice(0, MAX_MEANINGS)
+    .map((r) => ({
+      pos: 'phrase',
+      posName: 'Phrase',
+      gloss: r.note ? `${r.en} (${r.note})` : r.en,
+      ...(r.regionTagged && r.regions.length < allRegions ? { regions: r.regions } : {}),
+    }))
 }
 
 // A word box's alternatives (the `word-options` function, and the web app once the language is downloaded).
