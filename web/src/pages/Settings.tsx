@@ -1,4 +1,5 @@
 import { AccountCard } from '../components/AccountCard'
+import { OfflineCard } from '../components/OfflineCard'
 import { useJournalExtraChecks } from '../lib/journal'
 import { TARGET_LANGUAGES, useTargetLanguage, type TargetLanguage } from '../lib/languages'
 import { useColorblind, useThemeChoice, type ThemeChoice } from '../lib/theme'
@@ -130,6 +131,8 @@ export function Settings() {
           </span>
         </label>
       </section>
+
+      <OfflineCard target={target} />
     </main>
   )
 }

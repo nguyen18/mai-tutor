@@ -1,5 +1,6 @@
 import { backendConfigured, callFunction } from './backend'
 import type { TargetLanguage } from './languages'
+import { viaMai } from './offline/client'
 
 // which-dialect's sentence frames, for the journal's frames browser: common sentences with slots, in the
 // learner's region ("{place} ở đâu?", Central "{place} ở mô?"). From the backend's `sentence-frames`
@@ -32,8 +33,9 @@ export function loadFrames(target: TargetLanguage): Promise<Frame[]> {
   if (!backendConfigured) return Promise.resolve([])
   let frames = loaded.get(target.id)
   if (!frames) {
-    frames = callFunction<{ frames: Frame[] }>('sentence-frames', { target: target.id }, 'Loading sentence frames failed')
-      .then((r) => r.frames)
+    frames = viaMai(target, { op: 'frames', target }, () =>
+      callFunction<{ frames: Frame[] }>('sentence-frames', { target: target.id }, 'Loading sentence frames failed'),
+    ).then((r) => r.frames)
     // A failed load is tried again next time.
     frames.catch(() => loaded.delete(target.id))
     loaded.set(target.id, frames)

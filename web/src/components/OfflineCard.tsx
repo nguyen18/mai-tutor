@@ -1,0 +1,98 @@
+import { useState } from 'react'
+import { TARGET_LANGUAGES, type TargetLanguage } from '../lib/languages'
+import { download, isDownloaded, remove, useOffline } from '../lib/offline/client'
+import { BRIDGE, DOWNLOAD_SIZES, packId, packsFor } from '../lib/offline/packs'
+
+// Settings: Mai offline (lib/offline). Each language the site offers, the one being learned first, with
+// Download or Remove; English is listed as included while any language needs it. Per device.
+
+const LANGUAGES = [...new Map(TARGET_LANGUAGES.map((t) => [t.code, t.language])).entries()]
+
+const mb = (bytes: number) => `${(bytes / 1_000_000).toFixed(bytes < 10_000_000 ? 1 : 0)} MB`
+
+export function OfflineCard({ target }: { target: TargetLanguage }) {
+  const { packs, loaded, progress, downloading, errors } = useOffline()
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
+  const languages = [...LANGUAGES].sort(([a], [b]) => (a === target.code ? -1 : b === target.code ? 1 : 0))
+  const stored = (lang: string) => packs.find((p) => p.id === packId(lang) && p.complete)
+  // A package of this language at another version: the app reads a newer one now.
+  const outdated = (lang: string) => !stored(lang) && packs.some((p) => p.lang === lang && p.id !== packId(lang))
+  const neededBy = languages.filter(([code]) => isDownloaded(packs, code)).map(([, name]) => name)
+  const total = packs.reduce((n, p) => n + p.bytes, 0)
+
+  const status = (lang: string) => {
+    const p = progress[lang]
+    if (p) return `Downloading… ${p.total ? Math.floor((p.received / p.total) * 100) : 0}%`
+    if (downloading.includes(lang)) return 'Waiting…'
+    const s = stored(lang)
+    if (s) return `On this device · ${mb(s.bytes)}`
+    return `${mb(DOWNLOAD_SIZES[lang] ?? 0)} download${outdated(lang) ? ' · update available' : ''}`
+  }
+
+  const row = (lang: string, name: string) => {
+    const busy = downloading.some((l) => packsFor(lang).includes(l))
+    const ready = lang === BRIDGE ? !!stored(lang) : isDownloaded(packs, lang)
+    // English stays while a language needs it or is downloading.
+    const bridgeInUse = lang === BRIDGE && (neededBy.length > 0 || downloading.length > 0)
+    return (
+      <li key={lang} className="offline-pack">
+        <span>
+          <strong>{name}</strong>
+          <span className="muted">
+            {status(lang)}
+            {lang === BRIDGE && ' · every language needs it'}
+            {lang !== BRIDGE && !ready && !busy && !stored(BRIDGE) && ` + English ${mb(DOWNLOAD_SIZES[BRIDGE])}`}
+          </span>
+          {errors[lang] && <span className="error">Couldn't download: {errors[lang]}. Try again.</span>}
+        </span>
+        {busy ? null : ready ? (
+          !bridgeInUse &&
+          (confirmRemove === lang ? (
+            <span className="offline-confirm">
+              <button type="button" className="chip" onClick={() => void remove(lang).then(() => setConfirmRemove(null))}>
+                Remove
+              </button>
+              <button type="button" className="chip" onClick={() => setConfirmRemove(null)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="chip" onClick={() => setConfirmRemove(lang)}>
+              Remove
+            </button>
+          ))
+        ) : (
+          lang !== BRIDGE && (
+            <button type="button" className="chip" onClick={() => void download(lang)}>
+              {outdated(lang) ? 'Update' : 'Download'}
+            </button>
+          )
+        )}
+      </li>
+    )
+  }
+
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2>Use Mai offline</h2>
+      </div>
+      <p className="muted">
+        Download a language and Mai checks your journal on this device, with or without a connection: corrections,
+        captions, word boxes and sentence frames, usually in about a second. Best on wifi. Each dialect is included.
+        Saved on this device only.
+      </p>
+      {!loaded ? (
+        <p className="muted">Checking what's on this device…</p>
+      ) : (
+        <>
+          <ul className="offline-packs">
+            {languages.map(([code, name]) => row(code, name))}
+            {stored(BRIDGE) || downloading.includes(BRIDGE) ? row(BRIDGE, 'English') : null}
+          </ul>
+          {total > 0 && <p className="muted settings-note">On this device: {mb(total)}</p>}
+        </>
+      )}
+    </section>
+  )
+}

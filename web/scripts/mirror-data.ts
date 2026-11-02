@@ -15,7 +15,7 @@
 // The data comes from the published npm packages (which-dialect-en / -vi / -es, the versions below) and goes
 // to the public bucket `which-dialect` as <lang>@<version>/<path>. Already-uploaded files are skipped
 // (upsert: false), so an interrupted run can just be started again. Run it again when the data versions
-// change (DATA_SETS here and DATA_VERSIONS in supabase/functions/_shared/data.ts).
+// change (DATA_SETS here and DATA_VERSIONS in supabase/functions/_shared/versions.ts).
 
 import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
@@ -23,7 +23,7 @@ import { mkdir, readdir, readFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// The data package versions every function reads (supabase/functions/_shared/data.ts's DATA_VERSIONS must
+// The data package versions every function reads (supabase/functions/_shared/versions.ts's DATA_VERSIONS must
 // match), each in a folder named <lang>@<version>. (Folders from before 2026-10-01's bump to which-dialect
 // 0.5.0, named after the package version: 0.1.1, 0.2.0, 0.3.0, 0.4.0, are unused and can be deleted.)
 const DATA_SETS: { lang: string; version: string }[] = [
