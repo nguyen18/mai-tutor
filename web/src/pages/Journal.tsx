@@ -29,6 +29,7 @@ import { targetById, useTargetLanguage, type TargetLanguage } from '../lib/langu
 import { entryFor } from '../lib/translateWords'
 import { entryDate, monthLabel } from '../lib/journalDates'
 import { EntryHead } from '../components/EntryHead'
+import { OfflineHint } from '../components/OfflineHint'
 import { loadWordOptions, type WordAlternatives } from '../lib/wordOptions'
 import { currentCheck, useWordLookups } from '../lib/wordLookups'
 import { warmUp } from '../lib/offline/client'
@@ -342,6 +343,7 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
             onCheck={onCheck}
             extraChecks={extraChecks}
             onAcceptHint={onAcceptHint}
+            target={targetById(entry.targetId)}
           />
         ) : (
           <p className="journal-nudge">
@@ -361,9 +363,11 @@ type CorrectionProps = {
   /** The current setting, to offer a new check when the entry was checked with the other one. */
   extraChecks: boolean
   onAcceptHint: (key: string) => void
+  /** The entry's language, for the offline hint when a check fails. */
+  target: TargetLanguage
 }
 
-function Correction({ check, state, onCheck, extraChecks, onAcceptHint }: CorrectionProps) {
+function Correction({ check, state, onCheck, extraChecks, onAcceptHint, target }: CorrectionProps) {
   if (!backendConfigured) {
     return <p className="muted journal-check-status">Corrections aren't set up on this site yet.</p>
   }
@@ -375,6 +379,11 @@ function Correction({ check, state, onCheck, extraChecks, onAcceptHint }: Correc
         <button type="button" className="inline-link" onClick={onCheck}>
           {state === 'failed' ? 'Try again' : 'Check now'}
         </button>
+        {state === 'failed' && (
+          <>
+            .<OfflineHint target={target} />
+          </>
+        )}
       </p>
     )
   }
@@ -805,7 +814,13 @@ function WordAlternativesBox({ word, shown, onPick, target, tag = 'your word', s
   }, [target, word])
 
   if (options === undefined) return <p className="muted">Looking up “{word}”…</p>
-  if (options === null) return <p className="muted">Couldn't look up “{word}”.</p>
+  if (options === null)
+    return (
+      <p className="muted">
+        Couldn't look up “{word}”.
+        <OfflineHint target={target} />
+      </p>
+    )
 
   const own = { ...options.word, text: word.toLowerCase() }
   const lang = target.code
