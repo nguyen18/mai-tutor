@@ -3,7 +3,7 @@
 // (its DATA_SETS must list the same versions). From the jsDelivr CDN a word took ~20 s, since files nobody
 // had asked for recently take ~1 s each; next to the functions every file is fast.
 //
-// Every function imports which-dialect 0.5.12 (see each deno.json) and reads these. To upgrade: bump the
+// Every function imports which-dialect 0.5.14 (see each deno.json) and reads these. To upgrade: bump the
 // imports, the data versions in ./versions.ts and in DATA_SETS, run `npm run mirror-data`, and bump `translate`'s
 // VERSION (its cached rows are per version).
 
