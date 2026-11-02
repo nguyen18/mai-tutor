@@ -16,7 +16,8 @@
     "@supabase/supabase-js": "^2.118.0",
     "fflate": "^0.8.3",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "which-dialect": "^0.5.12"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
@@ -25,7 +26,6 @@
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0",
-    "which-dialect": "^0.5.11"
+    "vite": "^8.3.0"
   }
 }

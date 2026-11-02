@@ -2,6 +2,7 @@ import type { CheatsheetEntry } from './cheatsheet'
 import type { WordAlternatives } from './wordOptions'
 import { callFunction } from './backend'
 import type { TargetLanguage } from './languages'
+import { viaMai } from './offline/client'
 
 // Corrections for journal entries, by the backend's `check-spelling` function
 // (supabase/functions/check-spelling), which runs which-dialect's journal review. By default it's a
@@ -67,10 +68,9 @@ export type SpellingCheck = {
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
   // The pronoun check needs the language's pronoun table (TargetLanguage.pronouns).
   const checks = extraChecks ? { dialect: true, ...(target.pronouns ? { 'pronoun-consistency': true } : {}) } : {}
-  const review = await callFunction<Review>(
-    'check-spelling',
-    { target: target.id, text: input, checks },
-    'Checking the spelling failed',
+  // On the device when the language is downloaded (lib/offline), else the backend's check-spelling.
+  const review = await viaMai<Review>(target, { op: 'review', target, text: input, checks }, () =>
+    callFunction<Review>('check-spelling', { target: target.id, text: input, checks }, 'Checking the spelling failed'),
   )
   return { input, extraChecks, review, checkedAt: new Date().toISOString() }
 }
