@@ -697,6 +697,67 @@ button.tip-option:focus-visible {
   }
 }
 
+/* Holding a word and sliding over others highlights a phrase (lib/phraseSelection.ts): no callout, magnifier
+   or text selection from the browser on a long press. The words turn pink as the finger passes, the tint
+   spreading over the spaces between them so the phrase reads as one band. */
+.annotated-root .sel-unit {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The pink sits on the words' text only (.word-text, inline: the ruby base around it is a block as tall as
+   the page's line), as tight as Mai's correction tags (.fix-new). */
+.annotated-root .sel-unit.sel-live .word-text {
+  background: var(--phrase);
+  border-radius: 3px;
+  box-shadow: -3px 0 0 var(--phrase), 3px 0 0 var(--phrase);
+}
+
+/* A highlighted phrase (PhraseMark): one pink word, with Mai's reading of it above when it differs. */
+button.tip-trigger.phrase-mark {
+  cursor: pointer;
+}
+
+button.tip-trigger.phrase-mark .fix-original {
+  text-decoration: none;
+}
+
+button.tip-trigger.phrase-mark .word-text {
+  padding: 0 3px;
+  background: var(--phrase);
+  border-radius: 3px;
+}
+
+.change-kind[data-kind='phrase'] {
+  background: var(--phrase);
+}
+
+/* A phrase's box with no meaning for the whole: each word in turn, a thin line between them. */
+.phrase-part + .phrase-part {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* "Word by word", after the phrase's own translation. */
+.phrase-parts > .word-options-label {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.phrase-part-head {
+  margin-bottom: 4px;
+}
+
+.phrase-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 /* Custom lists */
 
 button.add-list {
