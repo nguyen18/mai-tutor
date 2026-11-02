@@ -1,24 +1,34 @@
 import { useEffect, useState } from 'react'
 import { FeedbackForm, type FeedbackState } from './FeedbackForm'
 import { onOpenFeedback, openFeedback, type FeedbackRequest } from '../lib/feedback'
+import { TARGET_LANGUAGES, useTargetLanguage } from '../lib/languages'
 import { useSyncStatus } from '../lib/sync'
 
 // "Wrong definition/word?" in word boxes (owner's request 2026-10-30): its own feedback pop-up, apart from
 // the 💬 panel so neither changes the other's draft. The sentence starts as "Wrong definition/word: “…”"
-// and the details are required.
+// and the details are required. On the Journal, the details start with the word's sentence (owner's request
+// 2026-11-01) and a line to finish, which doesn't count as details until something is added.
 
 // At the bottom of a word box (Journal and Cheatsheet, through Popover's `report`). Signed-in users only,
 // like the form. Closes the box (which unmounts this button), so the pop-up lives in WordFeedbackDialog.
-export function WrongWordButton({ word, context, onOpen }: { word: string; context?: Record<string, string>; onOpen: () => void }) {
+export function WrongWordButton({ word, context, sentence, onOpen }: { word: string; context?: Record<string, string>; sentence?: string; onOpen: () => void }) {
   const status = useSyncStatus()
+  const [target] = useTargetLanguage()
   if (status.state === 'signed-out') return null
+  // The ticket's Language: the word's own (an older journal entry can be in another language than the
+  // current one), or for an English word on the Cheatsheet, the one being learned.
+  const targetLanguage = TARGET_LANGUAGES.find((t) => t.code === context?.language)?.language ?? target.language
   return (
     <button
       type="button"
       className="link wrong-word"
       onClick={() => {
         onOpen()
-        openFeedback({ summary: `Wrong definition/word: “${word}”`, context: { word, ...context } })
+        openFeedback({
+          summary: `Wrong definition/word: “${word}”`,
+          context: { word, ...context, targetLanguage },
+          details: sentence?.trim() ? `Sentence: “${sentence.trim()}”\n\nWhat it should be in English: ` : undefined,
+        })
       }}
     >
       Wrong definition/word?
@@ -55,6 +65,7 @@ export function WordFeedbackDialog() {
           heading="Wrong definition/word? Bad definition ordering/ranking?"
           kind="word"
           initialSummary={request.summary}
+          initialDetails={request.details}
           context={request.context}
           detailsRequired
           summaryPlaceholder="e.g. Wrong definition/word: “bàn”"

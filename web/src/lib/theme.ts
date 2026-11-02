@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 
-// Light or dark (owner's request 2026-10-30): the device's setting by default, or one chosen in Settings.
+// Light or dark (owner's request 2026-10-30): light by default (owner's request 2026-11-02; it followed the
+// device's setting before), or the one chosen in Settings, where "Device" follows the device's setting.
 // The choice is this device's own (not synced: a phone and a laptop can differ). The page wears the result
 // as <html data-theme="light|dark">, which index.css's dark tokens key on; index.html sets it before the
 // first paint (from the same localStorage keys) so a dark page never flashes white.
@@ -43,7 +44,9 @@ if (read(THEME_KEY) === 'dark-colorblind') {
 
 const readTheme = (): ThemeChoice => {
   const raw = read(THEME_KEY)
-  return raw === 'light' || raw === 'dark' ? raw : 'system'
+  // Nothing stored is light, the default. "Device" is stored as "system" (before 2026-11-02 it was the
+  // default and stored as nothing, so anyone who had it now starts on light).
+  return raw === 'dark' || raw === 'system' ? raw : 'light'
 }
 const readColorblind = () => read(COLORBLIND_KEY) === '1'
 
@@ -52,7 +55,7 @@ let colorblind = readColorblind()
 
 function setTheme(choice: ThemeChoice) {
   theme = choice
-  write(THEME_KEY, choice === 'system' ? null : choice)
+  write(THEME_KEY, choice === 'light' ? null : choice)
   notify()
 }
 

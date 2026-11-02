@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useCallback, useRef, useState, type FormEvent } from 'react'
 import { MAX_DETAILS, MAX_SUMMARY, sendFeedback, type FeedbackKind } from '../lib/feedback'
 
 export type FeedbackState = 'editing' | 'sending' | 'sent'
@@ -10,6 +10,7 @@ export function FeedbackForm({
   heading,
   kind = 'general',
   initialSummary = '',
+  initialDetails = '',
   context,
   detailsRequired = false,
   summaryPlaceholder,
@@ -21,6 +22,8 @@ export function FeedbackForm({
   // The ticket's Issue on the board.
   kind?: FeedbackKind
   initialSummary?: string
+  // Where the details start; left as it is, it doesn't count as details.
+  initialDetails?: string
   // Extra lines for the ticket (the word a pop-up is about).
   context?: Record<string, string>
   detailsRequired?: boolean
@@ -30,12 +33,14 @@ export function FeedbackForm({
   onClose: () => void
 }) {
   const [summary, setSummary] = useState(initialSummary)
-  const [details, setDetails] = useState('')
+  const [details, setDetails] = useState(initialDetails)
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [state, setStateOnly] = useState<FeedbackState>('editing')
   const [error, setError] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+  // After any details already there, once when the box appears.
+  const cursorAtEnd = useCallback((box: HTMLTextAreaElement | null) => box?.setSelectionRange(box.value.length, box.value.length), [])
 
   const setState = (s: FeedbackState) => {
     setStateOnly(s)
@@ -51,13 +56,13 @@ export function FeedbackForm({
 
   const reset = () => {
     setSummary(initialSummary)
-    setDetails('')
+    setDetails(initialDetails)
     pick(null)
     setError(null)
     setState('editing')
   }
 
-  const ready = summary.trim() && (!detailsRequired || details.trim())
+  const ready = summary.trim() && (!detailsRequired || (details.trim() && details.trim() !== initialDetails.trim()))
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -118,6 +123,7 @@ export function FeedbackForm({
           required={detailsRequired}
           // With the sentence already written, the details are what's left to fill in.
           autoFocus={Boolean(initialSummary)}
+          ref={cursorAtEnd}
         />
       </label>
       <input
