@@ -63,7 +63,52 @@ export type SpellingCheck = {
    * Cheatsheet entry of each English word Mai translated (null: none).
    */
   lookups?: { words: Record<string, WordAlternatives>; english: Record<string, CheatsheetEntry | null> }
+  /** Which Mai checked it (CHECK_VERSION); entries checked by an older one are checked again. */
+  version?: string
+  /** Words the learner highlighted as one phrase (held and dragged over), with Mai's reading of them. */
+  phrases?: HeldPhrase[]
 }
+
+/**
+ * A highlighted phrase: offsets `a`–`b` in `review.text`, the learner's words there, and how Mai reads them
+ * as one piece (`reading`, once she has: "den tu" → "đến từ"; the learner may pick another).
+ */
+export type HeldPhrase = {
+  a: number
+  b: number
+  text: string
+  reading?: string
+  /**
+   * The phrase's words as the learner wrote them (`text`) and as Mai reads each (`read`): a correction's
+   * words together ("see" → "thấy", "we'll see" → "để xem"), the dictionary's words of several syllables
+   * whole ("hôm nay"). Its box shows each one's meaning and choices when the phrase as a whole has none.
+   */
+  parts?: PhrasePart[]
+}
+
+export type PhrasePart = { text: string; read: string }
+
+/** A checked text's words as written, each with what Mai reads it as (its correction's words, or itself). */
+export function reviewParts(review: Review): PhrasePart[] {
+  return review.sentences.flatMap((sentence) =>
+    alignSentence(sentence).flatMap((seg): PhrasePart[] =>
+      seg.change
+        ? seg.change.to
+          ? [{ text: seg.text, read: seg.change.to }]
+          : []
+        : wordTokens(seg.text, joinedWordsIn(seg.text, sentence))
+            .filter((t) => t.word)
+            .map((t) => ({ text: t.text, read: t.text })),
+    ),
+  )
+}
+
+/**
+ * The which-dialect version the checks run on: the functions' deno.json pins and web/package.json. Bump it
+ * with them; entries checked by another version are checked again in the background (Journal), keeping the
+ * learner's picks where the sentence didn't change (carryOver).
+ */
+export const CHECK_VERSION = 'which-dialect 0.5.16'
 
 export async function checkSpelling(target: TargetLanguage, input: string, extraChecks: boolean): Promise<SpellingCheck> {
   // The pronoun check needs the language's pronoun table (TargetLanguage.pronouns).
@@ -72,7 +117,50 @@ export async function checkSpelling(target: TargetLanguage, input: string, extra
   const review = await viaMai<Review>(target, { op: 'review', target, text: input, checks }, () =>
     callFunction<Review>('check-spelling', { target: target.id, text: input, checks }, 'Checking the spelling failed'),
   )
-  return { input, extraChecks, review, checkedAt: new Date().toISOString() }
+  return { input, extraChecks, review, checkedAt: new Date().toISOString(), version: CHECK_VERSION }
+}
+
+/**
+ * A new check of an entry with the learner's choices from its old one: accepted hints and word picks, in
+ * sentences whose words didn't change, matched to the same change (by its words) or hint (by its words
+ * and rule) in the new check, and kept words by their place in the sentence; highlighted phrases whose
+ * words are where they were.
+ */
+export function carryOver(old: SpellingCheck | undefined, next: SpellingCheck): SpellingCheck {
+  if (!old) return next
+  const before = old.review.sentences
+  const after = next.review.sentences
+  const same = (si: number) => before[si] !== undefined && after[si] !== undefined && before[si].original === after[si].original
+  const wordPicks: Record<string, string> = {}
+  for (const [key, word] of Object.entries(old.wordPicks ?? {})) {
+    const kept = /^(\d+)@(\d+)$/.exec(key)
+    if (kept) {
+      if (same(Number(kept[1]))) wordPicks[key] = word
+      continue
+    }
+    const [si, ci] = key.split(':').map(Number)
+    const change = same(si) ? before[si].changes[ci] : undefined
+    const at = change ? after[si].changes.findIndex((c) => c.from === change.from) : -1
+    if (at >= 0) wordPicks[changeKey(si, at)] = word
+  }
+  const acceptedHints = (old.acceptedHints ?? []).flatMap((key) => {
+    const [si, hi] = key.split(':').map(Number)
+    const hint = same(si) ? before[si].hints[hi] : undefined
+    const at = hint ? after[si].hints.findIndex((h) => h.text === hint.text && h.rule === hint.rule) : -1
+    return at >= 0 ? [`${si}:${at}`] : []
+  })
+  // Highlighted phrases whose words are still in the same place; read again (reading and parts dropped,
+  // Journal fills them in) when another Mai checked the entry.
+  const fresh = old.version !== next.version
+  const phrases = (old.phrases ?? [])
+    .filter((p) => next.review.text.slice(p.a, p.b) === p.text)
+    .map((p) => (fresh ? { a: p.a, b: p.b, text: p.text } : p))
+  return {
+    ...next,
+    ...(Object.keys(wordPicks).length ? { wordPicks } : {}),
+    ...(acceptedHints.length ? { acceptedHints } : {}),
+    ...(phrases.length ? { phrases } : {}),
+  }
 }
 
 /** How each kind of change is named and colored (`data-kind` in CSS). */
@@ -172,6 +260,26 @@ export const changeKey = (sentence: number, change: number) => `${sentence}:${ch
 /** The word to show for a change: the learner's pick (keeping a capital, like the review's), or its `to`. */
 export function shownWord(change: ReviewChange, pick: string | undefined): string {
   return pick === undefined ? change.to : keepCapital(change.to, pick)
+}
+
+/**
+ * The `wordPicks` keys of the words inside `range` of the checked text (offsets into `review.text`): changes
+ * by where their words are, and kept words by their offset.
+ */
+export function pickKeysIn(check: SpellingCheck, range: { a: number; b: number }): string[] {
+  const review = withAcceptedHints(check)
+  const keys: string[] = []
+  review.sentences.forEach((sentence, si) => {
+    for (const seg of alignSentence(sentence)) {
+      const a = sentence.start + seg.start
+      if (seg.change && a >= range.a && a + seg.text.length <= range.b) keys.push(changeKey(si, sentence.changes.indexOf(seg.change)))
+    }
+    for (const key of Object.keys(check.wordPicks ?? {})) {
+      const kept = /^(\d+)@(\d+)$/.exec(key)
+      if (kept && Number(kept[1]) === si && sentence.start + Number(kept[2]) >= range.a && sentence.start + Number(kept[2]) < range.b) keys.push(key)
+    }
+  })
+  return keys
 }
 
 /** A key for `wordPicks` on a word Mai left alone: its sentence and where it starts in the corrected sentence. */
