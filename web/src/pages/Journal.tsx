@@ -10,6 +10,7 @@ import {
   CHECK_VERSION,
   carryOver,
   pickKeysIn,
+  reviewWords,
   changeKey,
   keepCapital,
   keptWordKey,
@@ -58,6 +59,15 @@ export function Journal() {
   // The month whose entries show ("2026-10"; owner's request 2026-10-30): this month to start with.
   const [month, setMonth] = useState(() => nowLocal().slice(0, 7))
   const [checks, setChecks] = useState<CheckState>({})
+  // Per entry, the text and check from before "Use in my entry", for its Undo: kept until the page is
+  // reloaded (owner's request 2026-11-02), not saved with the entry.
+  const [undo, setUndo] = useState<Record<string, { text: string; check?: SpellingCheck }>>({})
+  const forgetUndo = (id: string) =>
+    setUndo((u) => {
+      const next = { ...u }
+      delete next[id]
+      return next
+    })
   // Every word box's content, fetched ahead of a tap and saved with the entry.
   useWordLookups(entries, save)
   // With the language downloaded (Settings → Use Mai offline), start Mai on the device now, so the first
@@ -141,8 +151,10 @@ export function Journal() {
     const phrase: HeldPhrase = { ...range, text }
     await updatePhrases(entry.id, (ps) => [...ps.filter((p) => p.b <= range.a || p.a >= range.b), phrase])
     try {
-      const reading = (await checkSpelling(targetById(entry.targetId), text, false)).review.corrected.trim()
-      await updatePhrases(entry.id, (ps) => ps.map((p) => (p.a === range.a && p.b === range.b && p.text === text ? { ...p, reading } : p)))
+      const { review } = await checkSpelling(targetById(entry.targetId), text, false)
+      const reading = review.corrected.trim()
+      const parts = reviewWords(review)
+      await updatePhrases(entry.id, (ps) => ps.map((p) => (p.a === range.a && p.b === range.b && p.text === text ? { ...p, reading, parts } : p)))
     } catch {
       // Left without a reading: the box says Mai is still reading it, and removing and highlighting it again
       // tries again.
@@ -165,11 +177,21 @@ export function Journal() {
   const replaceText = async (entry: JournalEntry, range: TextRange, text: string) => {
     const base = entry.check?.review.text ?? entry.text
     const updated = { ...entry, text: base.slice(0, range.a) + text + base.slice(range.b) }
+    setUndo((u) => ({ ...u, [entry.id]: { text: entry.text, check: entry.check } }))
     await save(updated)
     await runCheck(updated)
   }
+  // Back to the text and check from before "Use in my entry" (the entry's Undo).
+  const undoReplace = async (entry: JournalEntry) => {
+    const before = undo[entry.id]
+    if (!before) return
+    forgetUndo(entry.id)
+    await save({ ...entry, text: before.text, check: before.check })
+  }
 
   const onSave = async (entry: JournalEntry) => {
+    // Editing the entry makes "Use in my entry"'s undo meaningless.
+    forgetUndo(entry.id)
     await save(entry)
     setEditing(null)
     // An entry dated in another month shows there, rather than seeming to disappear.
@@ -283,6 +305,7 @@ export function Journal() {
                   }
                   onReplaceText={(range, text) => replaceText(entry, range, text)}
                   onAddPhrase={(range) => addPhrase(entry, range)}
+                  onUndo={undo[entry.id] ? () => undoReplace(entry) : undefined}
                   onRemovePhrase={(phrase) => removePhrase(entry, phrase)}
                   onPickPhrase={(phrase, reading) => updatePhrases(entry.id, (ps) => ps.map((p) => (samePhrase(p, phrase) ? { ...p, reading } : p)))}
                   onEdit={() => {
@@ -310,6 +333,8 @@ type CardProps = {
   onPickWord: (key: string, word: string) => void
   onReplaceText: (range: TextRange, text: string) => void
   onAddPhrase: (range: TextRange) => void
+  /** Puts back the text from before "Use in my entry", when there is one. */
+  onUndo?: () => void
   onRemovePhrase: (phrase: HeldPhrase) => void
   onPickPhrase: (phrase: HeldPhrase, reading: string) => void
   onEdit: () => void
@@ -349,7 +374,7 @@ function useGridBottomRow(paperRef: RefObject<HTMLDivElement | null>) {
   })
 }
 
-function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onReplaceText, onAddPhrase, onRemovePhrase, onPickPhrase, onEdit, onDelete }: CardProps) {
+function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onAcceptHint, onPickWord, onReplaceText, onAddPhrase, onUndo, onRemovePhrase, onPickPhrase, onEdit, onDelete }: CardProps) {
   const paperRef = useRef<HTMLDivElement>(null)
   useGridBottomRow(paperRef)
   const [confirming, setConfirming] = useState(false)
@@ -380,6 +405,11 @@ function EntryCard({ entry, currentTarget, checkState, onCheck, extraChecks, onA
             </span>
           ) : (
             <>
+              {onUndo && (
+                <button type="button" className="icon-button small" aria-label="Undo “Use in my entry”" title="Undo" onClick={onUndo}>
+                  ↶
+                </button>
+              )}
               <button type="button" className="icon-button small" aria-label="Edit entry" title="Edit" onClick={onEdit}>
                 ✎
               </button>
@@ -702,9 +732,7 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
           <span>Mai reads it as written.</span>
         )}
       </p>
-      {reading !== undefined && reading.length <= 60 && (
-        <WordAlternativesBox word={reading} shown={reading} onPick={(w) => onPick?.(w)} target={target} tag="Mai's reading" />
-      )}
+      {reading !== undefined && <PhraseMeanings reading={reading} parts={phrase.parts} onPick={(w) => onPick?.(w)} target={target} />}
       <p className="phrase-actions">
         {changed && onUse && (
           <button type="button" className="chip" onClick={() => onUse(reading!)}>
@@ -718,6 +746,57 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
         )}
       </p>
     </Popover>
+  )
+}
+
+type PhraseMeaningsProps = { reading: string; parts?: string[]; onPick: (reading: string) => void; target: TargetLanguage }
+
+// What a highlighted phrase means: the phrase's own meanings and other words when the dictionary or the
+// phrasebook has it ("đến từ": come from), else each of its words in turn ("đi", "ăn kèm"), with their
+// meanings and choices; a choice replaces that word in Mai's reading, shown above the phrase (owner's request
+// 2026-11-02: a phrase read as written still gets a box like a word's).
+function PhraseMeanings({ reading, parts, onPick, target }: PhraseMeaningsProps) {
+  // A single word is its own box; a phrase is looked up whole first (word-options takes up to 60 letters).
+  const single = !/\s/.test(reading)
+  const lookUp = !single && reading.length <= 60
+  const [found, setFound] = useState<{ reading: string; whole: boolean } | undefined>(undefined)
+  useEffect(() => {
+    if (!lookUp) return
+    let cancelled = false
+    loadWordOptions(target, reading)
+      .then((o) => !cancelled && setFound({ reading, whole: Boolean(o?.word.meanings.length) }))
+      .catch(() => !cancelled && setFound({ reading, whole: false }))
+    return () => {
+      cancelled = true
+    }
+  }, [target, reading, lookUp])
+  const whole = single ? true : !lookUp ? false : found?.reading === reading ? found.whole : undefined
+
+  if (whole === undefined) return <p className="muted">Looking up “{reading}”…</p>
+  if (whole) return <WordAlternativesBox word={reading} shown={reading} onPick={onPick} target={target} tag="Mai's reading" />
+  const words = parts?.length ? parts : reading.split(/\s+/).filter((w) => /\p{L}/u.test(w))
+  // A word's choice goes in its place in the reading (the n-th time it's there, for words said twice).
+  const replace = (i: number, pick: string) => {
+    let from = 0
+    let at = -1
+    for (let k = 0; k <= i; k++) {
+      at = reading.toLowerCase().indexOf(words[k].toLowerCase(), from)
+      if (at < 0) return
+      from = at + words[k].length
+    }
+    onPick(reading.slice(0, at) + keepCapital(reading.slice(at, at + words[i].length), pick) + reading.slice(at + words[i].length))
+  }
+  return (
+    <div className="phrase-parts">
+      {words.map((w, i) => (
+        <div key={`${i}-${w}`} className="phrase-part">
+          <p className="tip-note-label" lang={target.code}>
+            {w}
+          </p>
+          <WordAlternativesBox word={w} shown={w} onPick={(pick) => replace(i, pick)} target={target} tag="Mai's reading" />
+        </div>
+      ))}
+    </div>
   )
 }
 

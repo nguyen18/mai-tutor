@@ -73,7 +73,22 @@ export type SpellingCheck = {
  * A highlighted phrase: offsets `a`–`b` in `review.text`, the learner's words there, and how Mai reads them
  * as one piece (`reading`, once she has: "den tu" → "đến từ"; the learner may pick another).
  */
-export type HeldPhrase = { a: number; b: number; text: string; reading?: string }
+export type HeldPhrase = {
+  a: number
+  b: number
+  text: string
+  reading?: string
+  /**
+   * The reading's words, the dictionary's words of several syllables kept whole ("đi", "ăn kèm"): its box
+   * shows each one's meaning and choices when the phrase as a whole has none.
+   */
+  parts?: string[]
+}
+
+/** A checked text's words, as the page shows them: words of several syllables whole ("hôm nay"). */
+export function reviewWords(review: Review): string[] {
+  return review.sentences.flatMap((s) => wordTokens(s.corrected, s.words ?? []).filter((t) => t.word).map((t) => t.text))
+}
 
 /**
  * The which-dialect version the checks run on: the functions' deno.json pins and web/package.json. Bump it
