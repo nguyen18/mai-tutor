@@ -2,6 +2,8 @@ import { useId, useRef, useState, type FormEvent } from 'react'
 import { ACCEPTED_FILES, MAX_MY_WORDS, readWordsFile, wordsFromText } from '../lib/myWords'
 import { backendConfigured } from '../lib/backend'
 import { ROUTE_HREF } from '../lib/useRoute'
+import type { TargetLanguage } from '../lib/languages'
+import { OfflineHint } from './OfflineHint'
 
 type Props = {
   words: string[]
@@ -10,6 +12,8 @@ type Props = {
   translating: boolean
   failedCount: number
   onRetry: () => void
+  /** For the offline hint when words couldn't be translated. */
+  target: TargetLanguage
 }
 
 // Words found in pasted text or a file, waiting for the user to replace or add to their list.
@@ -17,7 +21,7 @@ type Found = { words: string[]; source: string }
 
 // Under the "100 most common words you use" list: ways to fill it (the Discoverer, typing or pasting,
 // uploading a file), translation status, and clearing it.
-export function MyWordsControls({ words, onAdd, onReplace, translating, failedCount, onRetry }: Props) {
+export function MyWordsControls({ words, onAdd, onReplace, translating, failedCount, onRetry, target }: Props) {
   const id = useId()
   const [text, setText] = useState('')
   const [found, setFound] = useState<Found | null>(null)
@@ -90,6 +94,7 @@ export function MyWordsControls({ words, onAdd, onReplace, translating, failedCo
             <button type="button" className="link" onClick={onRetry}>
               Try again
             </button>
+            .<OfflineHint target={target} />
           </p>
         ) : (
           <p className="muted my-words-status">

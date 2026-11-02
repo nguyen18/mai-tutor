@@ -74,6 +74,7 @@ export function Cheatsheet() {
           translating={mine.translating}
           failedCount={mine.failedCount}
           onRetry={mine.retry}
+          target={target}
         />
       </ListCard>
 
