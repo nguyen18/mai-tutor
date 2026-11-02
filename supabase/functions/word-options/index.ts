@@ -19,16 +19,12 @@ import '@supabase/functions-js/edge-runtime.d.ts'
 import { withSupabase } from '@supabase/server'
 import * as wd from 'which-dialect'
 import { dataUrl, TARGETS, withCors } from '../_shared/journal.ts'
-import { describeWord } from '../_shared/words.ts'
+import { wordAlternatives } from '../_shared/words.ts'
 
 const MAX_WORD_LENGTH = 60
 const MAX_WORDS = 40
 // Words looked up at once in a batch.
 const BATCH_CONCURRENCY = 6
-const MAX_ACCENTS = 5
-const MAX_SYNONYMS = 6
-// Synonyms are read from this many of the word's first senses.
-const SYNONYM_SENSES = 3
 
 const dictionaries = new Map<string, wd.Dictionary>()
 const dictionary = (lang: string) => {
@@ -39,33 +35,8 @@ const dictionary = (lang: string) => {
 const validWord = (word: unknown): word is string =>
   typeof word === 'string' && Boolean(word.trim()) && word.length <= MAX_WORD_LENGTH
 
-async function optionsFor(dict: wd.Dictionary, allRegions: number, word: string) {
-  const lower = word.trim().normalize('NFC').toLowerCase()
-  const [variants, entries] = await Promise.all([
-    dict.variants(lower, { limit: MAX_ACCENTS }),
-    dict.lookup(lower).catch(() => []),
-  ])
-  const describe = (text: string) => describeWord(dict, wd.posName, text, allRegions)
-  const accentWords = variants.map((v) => v.word)
-
-  const synonymWords = [
-    ...new Set(
-      entries.flatMap((e) => e.senses.slice(0, SYNONYM_SENSES).flatMap((s) => s.synonyms ?? [])).filter((s) => s.toLowerCase() !== lower),
-    ),
-  ].slice(0, MAX_SYNONYMS)
-
-  const [self, accents, synonyms] = await Promise.all([
-    describe(lower),
-    Promise.all(accentWords.map(describe)),
-    Promise.all(synonymWords.map(describe)),
-  ])
-  // Only words with a meaning to show.
-  return {
-    word: self,
-    accents: accents.filter((a) => a.meanings.length),
-    synonyms: synonyms.filter((s) => s.meanings.length),
-  }
-}
+const optionsFor = (dict: wd.Dictionary, allRegions: number, word: string) =>
+  wordAlternatives(dict, wd.posName, word, allRegions)
 
 const handler = withSupabase({ auth: ['publishable', 'secret'] }, async (req) => {
   const body = await req.json().catch(() => null)

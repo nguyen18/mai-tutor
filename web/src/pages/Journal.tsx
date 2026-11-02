@@ -31,6 +31,7 @@ import { entryDate, monthLabel } from '../lib/journalDates'
 import { EntryHead } from '../components/EntryHead'
 import { loadWordOptions, type WordAlternatives } from '../lib/wordOptions'
 import { currentCheck, useWordLookups } from '../lib/wordLookups'
+import { warmUp } from '../lib/offline/client'
 
 // The journal: entries written in the target language (English where the learner doesn't know a word yet),
 // latest on top. Each shows the user's own words untouched (blue), and underneath, Mai's corrected copy
@@ -53,6 +54,9 @@ export function Journal() {
   const [checks, setChecks] = useState<CheckState>({})
   // Every word box's content, fetched ahead of a tap and saved with the entry.
   useWordLookups(entries, save)
+  // With the language downloaded (Settings → Use Mai offline), start Mai on the device now, so the first
+  // check of the visit doesn't wait for her to load.
+  useEffect(() => warmUp(target), [target])
   // The latest entries, for checks that finish after the entry was edited again.
   const entriesRef = useRef(entries)
   useLayoutEffect(() => {

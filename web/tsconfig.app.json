@@ -5,6 +5,9 @@
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
     "types": ["vite/client"],
+    // The shared function code (../supabase/functions/_shared, run here by lib/offline) names which-dialect
+    // the Deno way for its types; here they're the installed package's.
+    "paths": { "npm:which-dialect@*": ["./node_modules/which-dialect"] },
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 

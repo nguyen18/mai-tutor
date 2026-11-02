@@ -1,6 +1,7 @@
 import { backendConfigured, callFunction } from './backend'
 import type { WordOption } from './spelling'
 import type { TargetLanguage } from './languages'
+import { viaMai } from './offline/client'
 
 // Alternatives for a word Mai left as it is, for the journal's word box, from the backend's `word-options`
 // function: the word's own meanings, the same letters with other accents ("muộn" → muốn, mượn: a real word
@@ -32,10 +33,9 @@ export async function loadWordOptionsMany(target: TargetLanguage, words: string[
   if (!backendConfigured) return out
   const missing = [...new Set(words.map((w) => w.toLowerCase()))].filter((w) => !loaded.has(keyOf(target, w)))
   for (let i = 0; i < missing.length; i += BATCH) {
-    const { results } = await callFunction<{ results: Record<string, WordAlternatives> }>(
-      'word-options',
-      { target: target.id, words: missing.slice(i, i + BATCH) },
-      'Loading other words failed',
+    const words = missing.slice(i, i + BATCH)
+    const { results } = await viaMai(target, { op: 'word-options', target, words }, () =>
+      callFunction<{ results: Record<string, WordAlternatives> }>('word-options', { target: target.id, words }, 'Loading other words failed'),
     )
     for (const [word, options] of Object.entries(results)) {
       if (!loaded.has(keyOf(target, word))) loaded.set(keyOf(target, word), Promise.resolve(options))
@@ -54,7 +54,13 @@ export function loadWordOptions(target: TargetLanguage, word: string): Promise<W
   const key = keyOf(target, word)
   let options = loaded.get(key)
   if (!options) {
-    options = callFunction<WordAlternatives>('word-options', { target: target.id, word }, 'Loading other words failed')
+    options = viaMai(target, { op: 'word-options', target, words: [word] }, () =>
+      callFunction<{ results: Record<string, WordAlternatives> }>('word-options', { target: target.id, words: [word] }, 'Loading other words failed'),
+    ).then(({ results }) => {
+      const found = results[word]
+      if (!found) throw new Error(`No options for "${word}"`)
+      return found
+    })
     // A failed load is tried again next time.
     options.catch(() => loaded.delete(key))
     loaded.set(key, options)

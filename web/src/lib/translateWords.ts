@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { toEntry, wordKey, type CheatsheetEntry, type GeneratedWord, type WordBank } from './cheatsheet'
 import type { TargetLanguage } from './languages'
 import { backendConfigured, callFunction } from './backend'
+import { viaMai } from './offline/client'
 
 // Translations for words the pre-built bank doesn't have, from the backend's `translate` function
 // (supabase/functions/translate), which translates with which-dialect and caches every word for
@@ -16,10 +17,8 @@ const fetched = new Map<string, CheatsheetEntry>()
 const cacheKey = (target: TargetLanguage, word: string) => `${target.id}|${wordKey(word)}`
 
 async function fetchChunk(target: TargetLanguage, words: string[]): Promise<void> {
-  const { entries } = await callFunction<{ entries: GeneratedWord[] }>(
-    'translate',
-    { target: target.id, words },
-    'Translating failed',
+  const { entries } = await viaMai(target, { op: 'translate', target, words }, () =>
+    callFunction<{ entries: GeneratedWord[] }>('translate', { target: target.id, words }, 'Translating failed'),
   )
   // Keyed by the word asked for, which the function echoes back.
   for (const e of entries) fetched.set(cacheKey(target, e.word), toEntry(e))
