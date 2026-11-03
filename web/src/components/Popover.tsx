@@ -8,6 +8,7 @@ import {
   type FocusEvent,
   type ReactNode,
 } from 'react'
+import { speak as say, useVoice } from '../lib/speech'
 import { WrongWordButton } from './WordFeedback'
 
 const GUTTER = 12
@@ -43,6 +44,9 @@ type PopoverProps = {
   // A word box: ends with "Wrong definition/word?", which closes it and opens the feedback form about the
   // word (context goes on the ticket; sentence, the one it's in on the Journal, starts the details).
   report?: { word: string; context?: Record<string, string>; sentence?: string }
+  // A word box in the language being learned: a 🔊 button in its header reads the text aloud (owner's
+  // request 2026-11-02), when the device has a voice for `lang`.
+  speak?: { text: string; lang: string }
   children: ReactNode
 }
 
@@ -59,8 +63,10 @@ export function Popover({
   wrapClassName,
   contentKey,
   report,
+  speak,
   children,
 }: PopoverProps) {
+  const voice = useVoice(speak?.lang)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const [pinned, setPinned] = useState(false)
@@ -164,9 +170,22 @@ export function Popover({
       {open && (
         <div ref={tipRef} id={boxId} className={tipClass}>
           <div className="tip-box">
-            {/* Mobile only: the card isn't next to the word, so name it, and give it a close button. */}
-            <div className="tip-head">
+            {/* On mobile the card isn't next to the word, so name it, and give it a close button. With a voice,
+                the header shows on every screen for its 🔊 button. */}
+            <div className={voice && speak?.text.trim() ? 'tip-head speaks' : 'tip-head'}>
               <span className="cheat-word">{title}</span>
+              {voice && speak?.text.trim() && (
+                <button
+                  type="button"
+                  className="tip-speak"
+                  lang={speak.lang}
+                  aria-label={`Hear “${speak.text}”`}
+                  title={`Hear “${speak.text}”`}
+                  onClick={() => say(speak.text, voice)}
+                >
+                  🔊
+                </button>
+              )}
               <button type="button" className="tip-close" aria-label="Close" onClick={close}>
                 ✕
               </button>

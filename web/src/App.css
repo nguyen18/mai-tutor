@@ -639,6 +639,35 @@ button.tip-option:focus-visible {
   display: none;
 }
 
+/* A word box with a voice keeps its header on larger screens too, for the 🔊 button (lib/speech.ts); the close
+   button stays mobile-only. */
+.tip-head.speaks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tip-head.speaks .tip-close {
+  display: none;
+}
+
+.tip-head .cheat-word {
+  flex: 1;
+}
+
+button.tip-speak {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 @media (max-width: 600px) {
   /* The box becomes a card centered on screen, never taller than the screen; long content
      scrolls inside it. Keep the width in sync with MOBILE_QUERY in Cheatsheet.tsx. */
@@ -684,6 +713,10 @@ button.tip-option:focus-visible {
     padding: 8px 8px 8px 14px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
+  }
+
+  .tip-head.speaks .tip-close {
+    display: block;
   }
 
   button.tip-close {

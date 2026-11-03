@@ -755,6 +755,7 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
       align="start"
       contentKey={reading}
       report={{ word: reading ?? phrase.text, context: { language: lang, written: phrase.text, change: 'phrase' } }}
+      speak={{ text: reading ?? phrase.text, lang }}
     >
       <p className="change-why">
         <span className="change-kind" data-kind="phrase">
@@ -924,6 +925,7 @@ function ChangeMark({ change, original, sentence, shown, onPick, target }: Chang
       align="start"
       contentKey={shown}
       report={{ word: shown || change.from, sentence, context: { language: lang, written: change.from, change: change.kind } }}
+      speak={{ text: shown, lang }}
     >
       <p className="change-why">
         <span className="change-kind" data-kind={kind.color}>
@@ -1162,6 +1164,7 @@ function WordMark({ word, sentence, pick, onPick, target }: WordMarkProps) {
       align="start"
       contentKey={shown}
       report={{ word: shown, sentence, context: { language: target.code, written: word } }}
+      speak={{ text: shown, lang: target.code }}
     >
       <WordAlternativesBox word={word} shown={shown} onPick={onPick} target={target} />
     </Popover>
