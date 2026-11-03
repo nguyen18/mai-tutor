@@ -2143,13 +2143,10 @@ button.tip-trigger.word-mark.picked {
     left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - 52px));
   }
 
-  /* The reminder narrows (to 170px at the least) to fit between the screen's edge and the column rather
-     than reaching over the page; only on a screen too narrow even for that does it overlap the column's
-     edge. */
+  /* The reminder's left edge lines up with the ☰ button's (owner's request 2026-11-03), reaching over the
+     page's edge if it must. */
   :root .sign-in-nudge {
-    --nudge-width: clamp(170px, calc(var(--column-left) - 32px - 3px - 16px), 260px);
-    width: var(--nudge-width);
-    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - var(--nudge-width)));
+    left: max(16px, env(safe-area-inset-left), calc(var(--column-left) - 32px - 3px - 52px));
   }
 }
 
