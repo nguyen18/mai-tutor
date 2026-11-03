@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { useTargetLanguage } from './languages'
 
 // Reading words aloud with the device's built-in voices (owner's request 2026-11-02: hear any word or phrase
 // in a word box). Free and offline where the device has a voice for the language (macOS and iOS ship Vietnamese
@@ -24,17 +25,41 @@ function snapshot() {
   return cached
 }
 
-/** The device's best voice for a language code ("vi", "es"): a local one first, then the browser's default. */
-export function voiceFor(list: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | undefined {
+// The countries whose voices suit a region of the language being learned, best first (owner's question
+// 2026-11-02, "are there different dialects for the voices?"): Spanish voices come per country (es-MX, es-ES,
+// es-US…). Vietnamese voices aren't per region (vi-VN; Apple's Linh and Google's are Northern), so a Southern
+// learner hears a Northern voice until Mai has one of her own.
+const LATIN_AMERICA = ['MX', '419', 'US', 'CO', 'AR']
+const REGION_COUNTRIES: Record<string, string[]> = {
+  Spain: ['ES'],
+  Mexico: ['MX', ...LATIN_AMERICA],
+  'Latin America': LATIN_AMERICA,
+  Argentina: ['AR', ...LATIN_AMERICA],
+  Colombia: ['CO', ...LATIN_AMERICA],
+}
+// Apple's character voices (Grandma, Rocko, Zarvox…) are listed for every language; a learner wants a plain one.
+const NOVELTY = /^(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox)\b/
+
+/** The device's best voice for a language code ("vi", "es"): the region's country first, then a plain voice
+ * over a character one, a local one over an online one. */
+export function voiceFor(list: SpeechSynthesisVoice[], lang: string, region?: string): SpeechSynthesisVoice | undefined {
   const code = lang.toLowerCase()
+  const countries = (region && REGION_COUNTRIES[region]) || []
+  const score = (v: SpeechSynthesisVoice) => {
+    const country = v.lang.replace('_', '-').split('-')[1]?.toUpperCase() ?? ''
+    const at = countries.indexOf(country)
+    return (at < 0 ? 0 : 10 * (countries.length - at)) + (NOVELTY.test(v.name) ? 0 : 4) + (v.localService ? 2 : 0) + (v.default ? 1 : 0)
+  }
   const fits = list.filter((v) => v.lang.toLowerCase().replace('_', '-').split('-')[0] === code)
-  return fits.find((v) => v.localService && v.default) ?? fits.find((v) => v.localService) ?? fits.find((v) => v.default) ?? fits[0]
+  return fits.reduce<SpeechSynthesisVoice | undefined>((best, v) => (!best || score(v) > score(best) ? v : best), undefined)
 }
 
-/** The voice for `lang`, or undefined when the device has none (or no speech at all). */
+/** The voice for `lang`, or undefined when the device has none (or no speech at all). Words in the language
+ * being learned get a voice from the learner's region (Settings). */
 export function useVoice(lang: string | undefined) {
   const list = useSyncExternalStore(subscribe, snapshot, () => cached)
-  return lang ? voiceFor(list, lang) : undefined
+  const [target] = useTargetLanguage()
+  return lang ? voiceFor(list, lang, target.code === lang ? target.region : undefined) : undefined
 }
 
 /** Reads `text` aloud with `voice`, stopping anything already being read. */

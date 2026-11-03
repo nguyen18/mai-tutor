@@ -44,7 +44,7 @@ type PopoverProps = {
   // A word box: ends with "Wrong definition/word?", which closes it and opens the feedback form about the
   // word (context goes on the ticket; sentence, the one it's in on the Journal, starts the details).
   report?: { word: string; context?: Record<string, string>; sentence?: string }
-  // A word box in the language being learned: a 🔊 button in its header reads the text aloud (owner's
+  // A word box in the language being learned: a play button in its header reads the text aloud (owner's
   // request 2026-11-02), when the device has a voice for `lang`.
   speak?: { text: string; lang: string }
   children: ReactNode
@@ -171,7 +171,7 @@ export function Popover({
         <div ref={tipRef} id={boxId} className={tipClass}>
           <div className="tip-box">
             {/* On mobile the card isn't next to the word, so name it, and give it a close button. With a voice,
-                the header shows on every screen for its 🔊 button. */}
+                the header shows on every screen for its play button. */}
             <div className={voice && speak?.text.trim() ? 'tip-head speaks' : 'tip-head'}>
               <span className="cheat-word">{title}</span>
               {voice && speak?.text.trim() && (
@@ -183,7 +183,9 @@ export function Popover({
                   title={`Hear “${speak.text}”`}
                   onClick={() => say(speak.text, voice)}
                 >
-                  🔊
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path d="M4.5 2.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L5.4 2.1a.6.6 0 0 0-.9.5z" fill="currentColor" />
+                  </svg>
                 </button>
               )}
               <button type="button" className="tip-close" aria-label="Close" onClick={close}>
