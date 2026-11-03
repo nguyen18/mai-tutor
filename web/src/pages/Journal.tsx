@@ -163,13 +163,20 @@ export function Journal() {
     return () => window.clearTimeout(id)
   }, [entries, checks, month])
 
+  // A new highlight that runs into old ones takes their place (owner's request 2026-11-02): they're removed
+  // as "Remove highlight" would (the picks on their words go too), and the new one covers the words dragged over.
   const addPhrase = async (entry: JournalEntry, range: TextRange) => {
-    const check = currentCheck(entry)
-    if (!check) return
+    const latest = entriesRef.current?.find((e) => e.id === entry.id)
+    const check = latest && currentCheck(latest)
+    if (!latest || !check) return
     const text = check.review.text.slice(range.a, range.b)
     const phrase: HeldPhrase = { ...range, text }
-    await updatePhrases(entry.id, (ps) => [...ps.filter((p) => p.b <= range.a || p.a >= range.b), phrase])
-    await readPhrase(entry, phrase)
+    const overlaps = (p: HeldPhrase) => p.a < range.b && p.b > range.a
+    const old = (check.phrases ?? []).filter(overlaps)
+    const inside = new Set(old.flatMap((p) => pickKeysIn(check, p)))
+    const wordPicks = Object.fromEntries(Object.entries(check.wordPicks ?? {}).filter(([key]) => !inside.has(key)))
+    await save({ ...latest, check: { ...check, wordPicks, phrases: [...(check.phrases ?? []).filter((p) => !overlaps(p)), phrase] } })
+    await readPhrase(latest, phrase)
   }
   // Removing a highlight starts those words over (owner's request 2026-11-02): the phrase goes, and so do the
   // learner's picks on the words inside it, so they show as Mai first had them.
@@ -660,7 +667,7 @@ export function AnnotatedText({ check, onPickWord, onAddPhrase, onRemovePhrase, 
     if (item.node) {
       // Each word, wrapped with its place in the checked text (data-a, data-b) for selecting phrases.
       out.push(
-        <span key={item.key} className="sel-unit" data-a={item.a} data-b={item.b}>
+        <span key={item.key} className={item.key.startsWith('p') ? 'sel-phrase' : 'sel-unit'} data-a={item.a} data-b={item.b}>
           {item.node}
         </span>,
       )
@@ -690,6 +697,25 @@ export function AnnotatedText({ check, onPickWord, onAddPhrase, onRemovePhrase, 
   )
 }
 
+// A highlighted phrase's words, each selectable on its own (`sel-unit`), so a new drag can take some of them:
+// the old highlight lets go of them while the drag runs over it (lib/phraseSelection.ts).
+function PhraseWords({ phrase }: { phrase: HeldPhrase }) {
+  const out: ReactNode[] = []
+  let at = 0
+  for (const m of phrase.text.matchAll(/[\p{L}\p{M}\p{N}'’-]+/gu)) {
+    const start = m.index ?? 0
+    if (start > at) out.push(phrase.text.slice(at, start))
+    out.push(
+      <span key={start} className="sel-unit" data-a={phrase.a + start} data-b={phrase.a + start + m[0].length}>
+        {m[0]}
+      </span>,
+    )
+    at = start + m[0].length
+  }
+  if (at < phrase.text.length) out.push(phrase.text.slice(at))
+  return out
+}
+
 type PhraseMarkProps = {
   phrase: HeldPhrase
   target: TargetLanguage
@@ -713,7 +739,9 @@ function PhraseMark({ phrase, target, onPick, onRemove, onUse }: PhraseMarkProps
       trigger={
         <ruby className="fix phrase">
           <span className="fix-original">
-            <span className="word-text">{phrase.text}</span>
+            <span className="word-text">
+              <PhraseWords phrase={phrase} />
+            </span>
           </span>
           <rt className="fix-new" data-kind={changed ? kindOf('spelling').color : undefined}>
             {changed ? reading : ''}
