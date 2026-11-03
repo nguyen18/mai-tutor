@@ -659,19 +659,23 @@ button.tip-speak {
   flex: none;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0 0 0 2px;
   color: var(--accent);
-  background: var(--accent-soft);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   border-radius: 50%;
   cursor: pointer;
 }
 
-button.tip-speak:hover {
-  color: var(--on-accent);
-  background: var(--accent);
+button.tip-speak:hover,
+button.tip-speak[aria-pressed='true'] {
+  border-color: var(--accent);
+}
+
+button.tip-speak[aria-pressed='true'] {
+  padding-left: 0;
 }
 
 @media (max-width: 600px) {

@@ -8,7 +8,8 @@ import {
   type FocusEvent,
   type ReactNode,
 } from 'react'
-import { speak as say, useVoice } from '../lib/speech'
+import { useVoice } from '../lib/speech'
+import { SpeakButton } from './SpeakButton'
 import { WrongWordButton } from './WordFeedback'
 
 const GUTTER = 12
@@ -175,18 +176,7 @@ export function Popover({
             <div className={voice && speak?.text.trim() ? 'tip-head speaks' : 'tip-head'}>
               <span className="cheat-word">{title}</span>
               {voice && speak?.text.trim() && (
-                <button
-                  type="button"
-                  className="tip-speak"
-                  lang={speak.lang}
-                  aria-label={`Hear “${speak.text}”`}
-                  title={`Hear “${speak.text}”`}
-                  onClick={() => say(speak.text, voice)}
-                >
-                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                    <path d="M4.5 2.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L5.4 2.1a.6.6 0 0 0-.9.5z" fill="currentColor" />
-                  </svg>
-                </button>
+                <SpeakButton text={speak.text} lang={speak.lang} voice={voice} />
               )}
               <button type="button" className="tip-close" aria-label="Close" onClick={close}>
                 ✕

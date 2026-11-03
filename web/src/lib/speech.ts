@@ -62,14 +62,24 @@ export function useVoice(lang: string | undefined) {
   return lang ? voiceFor(list, lang, target.code === lang ? target.region : undefined) : undefined
 }
 
-/** Reads `text` aloud with `voice`, stopping anything already being read. */
-export function speak(text: string, voice: SpeechSynthesisVoice) {
+/** Reads `text` aloud with `voice`, stopping anything already being read; `onDone` runs when it ends or is
+ * stopped. Returns the utterance: keep a reference to it while it plays (Chrome can drop the end event of one
+ * that's been garbage-collected). */
+export function speak(text: string, voice: SpeechSynthesisVoice, onDone?: () => void) {
   const s = synth()
-  if (!s || !text.trim()) return
+  if (!s || !text.trim()) return undefined
   s.cancel()
   const u = new SpeechSynthesisUtterance(text)
   u.voice = voice
   u.lang = voice.lang
   u.rate = RATE
+  u.onend = () => onDone?.()
+  u.onerror = () => onDone?.()
   s.speak(u)
+  return u
+}
+
+/** Stops whatever is being read. */
+export function stopSpeaking() {
+  synth()?.cancel()
 }
