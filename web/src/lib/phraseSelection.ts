@@ -3,7 +3,8 @@ import { useEffect, useRef, type RefObject } from 'react'
 // Pressing a word and dragging over others highlights them as one phrase (owner's request 2026-11-02: "den tu"
 // should be read as "đến từ", not two words). Words are buttons (word boxes), so the browser's own text
 // selection can't reach across them: this does it with pointer events. Each selectable word is an element
-// with class `sel-unit` and `data-a`/`data-b`, its start and end offsets in the checked text.
+// with class `sel-unit` and `data-a`/`data-b`, its start and end offsets in the checked text; a highlighted
+// phrase is a `sel-phrase` with the same offsets, its words `sel-unit`s inside it.
 //
 // While the finger moves, the words are tinted straight in the DOM (class `sel-live`), not through React
 // state, so the drag stays smooth however long the entry is (owner's feedback: "super clunky").
@@ -40,6 +41,12 @@ export function usePhraseSelection(root: RefObject<HTMLElement | null>, onSelect
       for (const u of el.querySelectorAll<HTMLElement>('.sel-unit')) {
         const { a, b } = rangeOf(u)
         u.classList.toggle('sel-live', Boolean(r && a >= r.a && b <= r.b))
+      }
+      // A highlighted phrase the drag runs into lets go of its words (`sel-broken`: no pink, no reading above),
+      // so the new highlight can take any of them; on release the new one replaces it (owner's request 2026-11-02).
+      for (const p of el.querySelectorAll<HTMLElement>('.sel-phrase')) {
+        const { a, b } = rangeOf(p)
+        p.classList.toggle('sel-broken', Boolean(r && a < r.b && b > r.a))
       }
     }
     const extendTo = (u: HTMLElement) => {

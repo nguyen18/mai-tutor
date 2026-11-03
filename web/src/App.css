@@ -700,7 +700,8 @@ button.tip-option:focus-visible {
 /* Holding a word and sliding over others highlights a phrase (lib/phraseSelection.ts): no callout, magnifier
    or text selection from the browser on a long press. The words turn pink as the finger passes, the tint
    spreading over the spaces between them so the phrase reads as one band. */
-.annotated-root .sel-unit {
+.annotated-root .sel-unit,
+.annotated-root .sel-phrase {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
@@ -708,7 +709,8 @@ button.tip-option:focus-visible {
 
 /* The pink sits on the words' text only (.word-text, inline: the ruby base around it is a block as tall as
    the page's line), as tight as Mai's correction tags (.fix-new). */
-.annotated-root .sel-unit.sel-live .word-text {
+.annotated-root .sel-unit.sel-live .word-text,
+.annotated-root .sel-phrase.sel-broken .sel-unit.sel-live {
   background: var(--phrase);
   border-radius: 3px;
   box-shadow: -3px 0 0 var(--phrase), 3px 0 0 var(--phrase);
@@ -727,6 +729,16 @@ button.tip-trigger.phrase-mark .word-text {
   padding: 0 3px;
   background: var(--phrase);
   border-radius: 3px;
+}
+
+/* While a new drag runs over a highlighted phrase, the phrase lets go of its words (lib/phraseSelection.ts):
+   no pink but the words being selected, and no reading above. */
+.annotated-root .sel-phrase.sel-broken button.tip-trigger.phrase-mark .word-text {
+  background: none;
+}
+
+.annotated-root .sel-phrase.sel-broken .fix-new {
+  visibility: hidden;
 }
 
 .change-kind[data-kind='phrase'] {
