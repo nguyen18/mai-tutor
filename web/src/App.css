@@ -661,7 +661,7 @@ button.tip-speak {
   place-items: center;
   width: 30px;
   height: 30px;
-  padding: 0 0 0 2px;
+  padding: 0;
   color: var(--accent);
   background: var(--surface);
   border: 1.5px solid var(--border);
@@ -672,10 +672,6 @@ button.tip-speak {
 button.tip-speak:hover,
 button.tip-speak[aria-pressed='true'] {
   border-color: var(--accent);
-}
-
-button.tip-speak[aria-pressed='true'] {
-  padding-left: 0;
 }
 
 @media (max-width: 600px) {

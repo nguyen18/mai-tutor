@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { speak, stopSpeaking } from '../lib/speech'
 
-const PLAY = 'M4.5 2.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L5.4 2.1a.6.6 0 0 0-.9.5z'
+// The triangle's box is a little right of centre (3.5–13.6 of 16), so it looks centred in the circle.
+const PLAY = 'M3.5 2.6v10.8a.6.6 0 0 0 .9.5l8.6-5.4a.6.6 0 0 0 0-1L4.4 2.1a.6.6 0 0 0-.9.5z'
 const PAUSE = 'M4 2.5h2.6v11H4zM9.4 2.5H12v11H9.4z'
 
 // A word box's play button (lib/speech.ts): reads the text aloud, showing pause while it plays (owner's request
