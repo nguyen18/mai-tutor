@@ -435,6 +435,7 @@ function TranslationCell({
         triggerLabel={`${text}, depends on who you're talking ${pronoun.role.relation === 'about' ? 'about' : 'to'}`}
         trigger={text}
         report={{ word: text, context: { language: lang ?? '', english: word } }}
+        speak={lang ? { text, lang } : undefined}
       >
         <PronounTableView pronoun={pronoun} role={pronoun.role} lang={lang} />
       </Popover>
@@ -502,6 +503,7 @@ function TranslationCell({
         word: picked?.text ?? word,
         context: { language: lang ?? '', english: word, meaning: meaning.gloss ?? '' },
       }}
+      speak={picked && lang ? { text: picked.text, lang } : undefined}
     >
       {meaningLine}
       {picked ? (
