@@ -3619,3 +3619,94 @@ button.month-step:disabled {
 .journal-month-empty {
   margin-top: 24px;
 }
+
+/* English ⇄ the language, for typing the entry (TypingToggle): a row under the editor's toolbar on a
+   computer; on a phone, a bar on top of the keyboard while the text is being written. */
+.typing-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-top: 1.5px solid var(--ink);
+  background: var(--surface);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.typing-switch {
+  display: inline-flex;
+  flex: none;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.typing-switch button {
+  padding: 4px 12px;
+  font-family: var(--display);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.typing-switch button + button {
+  border-left: 1.5px solid var(--ink);
+}
+
+.typing-switch button[aria-checked='true'] {
+  color: var(--surface);
+  background: var(--accent);
+}
+
+.typing-hint {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+kbd.typing-keys {
+  flex: none;
+  font-family: inherit;
+}
+
+@media (max-width: 600px) {
+  /* Only while writing, on top of the keyboard (--keyboard: how much of the screen it covers on iOS). */
+  .typing-toggle {
+    display: none;
+  }
+
+  .typing-toggle.writing {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--keyboard, 0px);
+    z-index: 40;
+    display: flex;
+  }
+
+  kbd.typing-keys {
+    display: none;
+  }
+
+  /* The whole reminder of the keys, on two lines if need be. */
+  .typing-hint {
+    font-size: 0.7rem;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  /* Keeps the line being written clear of the bar. */
+  .editor-body {
+    scroll-padding-bottom: 48px;
+  }
+}
