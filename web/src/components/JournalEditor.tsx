@@ -9,6 +9,8 @@ import { EntryHead } from './EntryHead'
 import { FramesBrowser } from './FramesBrowser'
 import { JournalSheet, type SheetApi } from './JournalSheet'
 import { StickerMaker } from './StickerMaker'
+import { TypingToggle } from './TypingToggle'
+import { TYPERS, useTypingTarget } from '../lib/typing'
 
 // Writing or editing a journal entry, laid out like a zine page (owner's reference: Daplit): a top bar
 // (← cancel, title, Save), the dated page (date row and week, as on saved entries) with the text, photos
@@ -57,6 +59,9 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
   const sheetApi = useRef<SheetApi | null>(null)
   // The tool panel open above the toolbar: one at a time, so the page stays in view on a phone.
   const [panel, setPanel] = useState<Panel | null>(null)
+  // Typing in the language with English keys, switched with the toggle or ⌘⇧ (lib/typing.ts).
+  const typer = TYPERS[target.code]
+  const [typingTarget, setTypingTarget] = useTypingTarget()
   const toggle = (p: Panel) => setPanel((open) => (open === p ? null : p))
 
   // On a phone the editor covers the screen; the page behind it shouldn't scroll.
@@ -177,6 +182,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
         <div className="editor-page">
           <JournalSheet
             apiRef={sheetApi}
+            typer={typer && typingTarget ? typer : null}
             text={text}
             items={items}
             onTextChange={setText}
@@ -268,6 +274,7 @@ export function JournalEditor({ target, entry, onSave, onCancel }: Props) {
             </button>
           ))}
         </nav>
+        {typer && <TypingToggle typer={typer} on={typingTarget} onChange={setTypingTarget} />}
       </div>
 
       {makingSticker && <StickerMaker onDone={keepSticker} onCancel={() => setMakingSticker(false)} />}

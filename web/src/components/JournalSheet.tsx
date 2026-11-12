@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from 'react'
 import { objectUrl, type SheetItem } from '../lib/journal'
+import type { Typer } from '../lib/typing'
 import { useOutlines, useWidth, wrapFloats } from '../lib/textWrap'
 
 // The entry sheet: the journal text on graph paper, with photos and stickers placed anywhere on it, and
@@ -33,13 +34,15 @@ type Props = {
   lang?: string
   label?: string
   apiRef?: RefObject<SheetApi | null>
+  /** Editing: converts English keys into the language's letters as they're typed (Telex for Vietnamese). */
+  typer?: Typer | null
   /** Read-only: the text as rendered with Mai's corrections written over it, in place of plain `text`. */
   richText?: ReactNode
   /** Space the text keeps clear in the top-right corner, for buttons laid over the page. */
   corner?: { width: number; height: number }
 }
 
-export function JournalSheet({ text, items, onTextChange, onItemsChange, placeholder, captionPlaceholder, lang, label, apiRef, richText, corner }: Props) {
+export function JournalSheet({ text, items, onTextChange, onItemsChange, placeholder, captionPlaceholder, lang, label, apiRef, typer, richText, corner }: Props) {
   const editable = Boolean(onTextChange && onItemsChange)
   const sheetRef = useRef<HTMLDivElement>(null)
   const [sheet, setSheet] = useState<HTMLDivElement | null>(null)
@@ -214,6 +217,7 @@ export function JournalSheet({ text, items, onTextChange, onItemsChange, placeho
               placeholder={placeholder}
               sheetRef={sheetRef}
               apiRef={apiRef}
+              typer={typer}
             />
           ) : (
             <div className={richText ? 'journal-text annotated' : 'journal-text'} lang={lang}>
@@ -359,12 +363,13 @@ type EditableTextProps = {
   placeholder?: string
   sheetRef: RefObject<HTMLDivElement | null>
   apiRef?: RefObject<SheetApi | null>
+  typer?: Typer | null
 }
 
 // The page's text while editing: an editable area (not a textarea), so it wraps around the pictures'
 // floats like the saved page. React doesn't render its text (that would fight the browser's editing);
 // the text is put in when it changes from outside (a frame inserted, an entry opened).
-function EditableText({ text, onChange, lang, label, placeholder, sheetRef, apiRef }: EditableTextProps) {
+function EditableText({ text, onChange, lang, label, placeholder, sheetRef, apiRef, typer }: EditableTextProps) {
   const ref = useRef<HTMLDivElement>(null)
   const shown = useRef<string | null>(null)
   // The last cursor position inside the text, so a frame goes where the learner was writing.
@@ -386,6 +391,41 @@ function EditableText({ text, onChange, lang, label, placeholder, sheetRef, apiR
     }
     document.addEventListener('selectionchange', onSelection)
     return () => document.removeEventListener('selectionchange', onSelection)
+  }, [])
+
+  // Typing in the language with English keys (lib/typing.ts): each typed character is checked against the
+  // word before the cursor; when it changes the word (tieng + s → tiếng), the word is replaced through
+  // insertText, which keeps undo working and fires `input` like typing does. The native event, not React's
+  // onBeforeInput (which comes from keypress and misses phones' keyboards).
+  const typerRef = useRef(typer)
+  useLayoutEffect(() => {
+    typerRef.current = typer
+  }, [typer])
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const onBeforeInput = (e: InputEvent) => {
+      const t = typerRef.current
+      if (!t || e.inputType !== 'insertText' || !e.data || [...e.data].length !== 1 || e.isComposing) return
+      const sel = document.getSelection()
+      if (!sel?.rangeCount || !sel.isCollapsed) return
+      const at = sel.getRangeAt(0)
+      const node = at.startContainer
+      const before = node.nodeType === Node.TEXT_NODE ? (node as Text).data.slice(0, at.startOffset) : ''
+      const edit = t.key(before, e.data)
+      if (!edit || edit.remove > before.length) return
+      e.preventDefault()
+      if (edit.remove) {
+        const range = document.createRange()
+        range.setStart(node, at.startOffset - edit.remove)
+        range.setEnd(node, at.startOffset)
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
+      document.execCommand('insertText', false, edit.insert)
+    }
+    el.addEventListener('beforeinput', onBeforeInput)
+    return () => el.removeEventListener('beforeinput', onBeforeInput)
   }, [])
 
   useEffect(() => {
@@ -444,6 +484,9 @@ function EditableText({ text, onChange, lang, label, placeholder, sheetRef, apiR
       aria-label={label}
       data-placeholder={placeholder}
       lang={lang}
+      // The phone's English autocorrect fights words typed in the language.
+      spellCheck={typer ? false : undefined}
+      autoCorrect={typer ? 'off' : undefined}
       onInput={(e) => {
         const value = readText(e.currentTarget)
         shown.current = value
