@@ -4,7 +4,7 @@
 // to the account.
 
 import { useEffect, useSyncExternalStore } from 'react'
-import { packId, packsFor, type PackRecord } from './packs'
+import { packId, packsFor, usablePack, type PackRecord } from './packs'
 import type { Progress } from './download'
 import { getPacks } from './store'
 import type { Request, Target } from './worker'
@@ -23,6 +23,16 @@ function call<T>(req: Request): Promise<T> {
       pending.delete(e.data.id!)
       if (e.data.error !== undefined) p.reject(new Error(e.data.error))
       else p.resolve(e.data.result)
+    }
+    // The worker's script couldn't load or start (e.g. its file missing): fail what's waiting, so a check
+    // goes to the backend instead of showing "checking…" forever, and start a new worker next time.
+    worker.onerror = (e) => {
+      e.preventDefault()
+      const err = new Error(e.message || "Mai couldn't start on this device.")
+      for (const p of pending.values()) p.reject(err)
+      pending.clear()
+      worker?.terminate()
+      worker = null
     }
   }
   const id = nextId++
@@ -60,6 +70,8 @@ function refresh(): Promise<void> {
 const isStored = (packs: PackRecord[], lang: string) => packs.some((p) => p.id === packId(lang) && p.complete)
 /** Whether everything a language needs (its package and English) is on this device. */
 export const isDownloaded = (packs: PackRecord[], lang: string) => packsFor(lang).every((l) => isStored(packs, l))
+/** Whether the language could run on the device, if only on an older version's data (see usablePack). */
+const isUsable = (packs: PackRecord[], lang: string) => packsFor(lang).every((l) => usablePack(packs, l))
 
 export function useOffline(): OfflineState {
   const snapshot = useSyncExternalStore(
@@ -101,7 +113,7 @@ export async function download(lang: string): Promise<void> {
  * Keeps the language being learned, and English, on this device at the versions the app reads (owner's
  * request 2026-11-02: everything is slow until it's downloaded, so it isn't left to Settings). Runs when the
  * site opens and when the language changes: a missing package is downloaded, and one at an older version is
- * replaced by the new one (the download removes other versions first). In the background; until it's done,
+ * replaced by the new one (the older one is removed once the new one is complete, and used offline until then). In the background; until it's done,
  * requests go to the backend as before.
  */
 export function useAutoDownload(lang: string): void {
@@ -120,12 +132,22 @@ export async function remove(lang: string): Promise<void> {
 
 /**
  * Runs a request on the device when the target's language is downloaded, and on the backend (`server`)
- * otherwise. If the device fails, the backend is asked instead.
+ * otherwise. If the device fails, the backend is asked instead. While an update of the language's data
+ * hasn't downloaded yet, the backend answers, and the device's older data does when the backend can't
+ * be reached (offline).
  */
 export async function viaMai<T>(target: Target, req: Request, server: () => Promise<T>): Promise<T> {
   if (typeof Worker === 'undefined' || typeof indexedDB === 'undefined') return server()
   if (!state.loaded) await refresh()
-  if (!isDownloaded(state.packs, target.code)) return server()
+  if (!isDownloaded(state.packs, target.code)) {
+    if (!isUsable(state.packs, target.code)) return server()
+    try {
+      return await server()
+    } catch (err) {
+      console.warn('The backend failed; using the older data on this device:', err)
+      return call<T>(req)
+    }
+  }
   try {
     return await call<T>(req)
   } catch (err) {

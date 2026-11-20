@@ -1,4 +1,5 @@
 import { supabase } from './backend'
+import { queueFeedback } from './feedbackOutbox'
 
 // Sends feedback to the `feedback` function (supabase/functions/feedback), which saves it and makes it a
 // ticket on the owner's Notion board. Signed-in users only: the function reads who sent it from their
@@ -56,35 +57,35 @@ export function onOpenFeedback(listener: (request: FeedbackRequest) => void): ()
   return () => window.removeEventListener(OPEN_EVENT, handle)
 }
 
-/** Sends the feedback; resolves with the ticket's URL (null if the ticket is still to be made), throws with a message to show. */
-export async function sendFeedback(feedback: {
+/** Thrown when the request never reached the server (no connection): the feedback can be queued and sent later. */
+export class OfflineError extends Error {}
+/** Thrown when nobody is signed in: the function needs an access token. */
+export class SignedOutError extends Error {}
+
+/** Posts one feedback, with its context already complete (the image already shrunk). Resolves with the ticket's URL (null if still to be made). */
+export async function postFeedback(f: {
   summary: string
   details: string
   image: File | null
-  context?: Record<string, string>
-  // Which form sent it, the ticket's Issue: the 💬 button's or a word box's (WordFeedback.tsx).
-  kind?: FeedbackKind
+  context: Record<string, string>
+  kind: FeedbackKind
 }): Promise<string | null> {
-  const client = await supabase()
-  const { data } = await client.auth.getSession()
-  const token = data.session?.access_token
-  if (!token) throw new Error('Sign in to send feedback.')
+  // Loading the client or refreshing the session can fail on a bad connection too: that's offline, so a
+  // queued feedback is kept rather than dropped as rejected.
+  const token = await supabase()
+    .then((client) => client.auth.getSession())
+    .then(({ data }) => data.session?.access_token)
+    .catch(() => {
+      throw new OfflineError("Couldn't send it. Check your connection and try again.")
+    })
+  if (!token) throw new SignedOutError('Sign in to send feedback.')
 
   const form = new FormData()
-  form.append('summary', feedback.summary.trim())
-  form.append('details', feedback.details.trim())
-  form.append('kind', feedback.kind ?? 'general')
-  if (feedback.image) form.append('image', await shrinkImage(feedback.image))
-  form.append(
-    'context',
-    JSON.stringify({
-      ...feedback.context,
-      page: window.location.hash || '#/',
-      screen: `${window.innerWidth}×${window.innerHeight}`,
-      browser: navigator.userAgent,
-      sent: new Date().toString(),
-    }),
-  )
+  form.append('summary', f.summary.trim())
+  form.append('details', f.details.trim())
+  form.append('kind', f.kind)
+  if (f.image) form.append('image', f.image)
+  form.append('context', JSON.stringify(f.context))
 
   let res: Response
   try {
@@ -94,9 +95,54 @@ export async function sendFeedback(feedback: {
       body: form,
     })
   } catch {
-    throw new Error("Couldn't send it. Check your connection and try again.")
+    throw new OfflineError("Couldn't send it. Check your connection and try again.")
   }
   const body = (await res.json().catch(() => ({}))) as { ticket?: string | null; error?: string }
   if (!res.ok) throw new Error(body.error ?? `Couldn't send it (${res.status}). Try again.`)
   return body.ticket ?? null
+}
+
+/**
+ * Sends the feedback; resolves with the ticket's URL (null if the ticket is still to be made), throws with a message to show.
+ * Offline, it is queued on the device instead (queued: true) and sent when the phone is back online.
+ */
+export async function sendFeedback(feedback: {
+  summary: string
+  details: string
+  image: File | null
+  context?: Record<string, string>
+  // Which form sent it, the ticket's Issue: the 💬 button's or a word box's (WordFeedback.tsx).
+  kind?: FeedbackKind
+}): Promise<{ queued: boolean; ticket: string | null }> {
+  // The page, screen and time are as they are when the user presses Send.
+  const context: Record<string, string> = {
+    ...feedback.context,
+    page: window.location.hash || '#/',
+    screen: `${window.innerWidth}×${window.innerHeight}`,
+    browser: navigator.userAgent,
+    sent: new Date().toString(),
+  }
+  const kind = feedback.kind ?? 'general'
+  const image = feedback.image ? await shrinkImage(feedback.image) : null
+
+  const queue = async () => {
+    await queueFeedback({
+      summary: feedback.summary,
+      details: feedback.details,
+      kind,
+      context,
+      image: image ? { bytes: await image.arrayBuffer(), type: image.type, name: image.name } : undefined,
+    })
+    return { queued: true, ticket: null }
+  }
+
+  // Offline, sign-in isn't checked here: getting the session may need the network.
+  if (!navigator.onLine) return queue()
+  try {
+    const ticket = await postFeedback({ summary: feedback.summary, details: feedback.details, image, context, kind })
+    return { queued: false, ticket }
+  } catch (err) {
+    if (err instanceof OfflineError) return queue()
+    throw err
+  }
 }

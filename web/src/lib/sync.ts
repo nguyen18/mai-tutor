@@ -240,10 +240,12 @@ async function run() {
     again = true
     return
   }
-  const client = await supabase()
-  const { data } = await client.auth.getSession()
-  const user = data.session?.user
-  if (!user) return
+  // Offline, loading the client or the session can fail: the 'online' listener syncs again later.
+  const session = await supabase()
+    .then(async (client) => ({ client, user: (await client.auth.getSession()).data.session?.user }))
+    .catch(() => null)
+  if (!session?.user) return
+  const { client, user } = session
   running = true
   const email = user.email ?? ''
   const lastSynced = status.state === 'signed-out' ? undefined : status.lastSynced
@@ -268,11 +270,14 @@ let started = false
 export async function startSync() {
   if (started || !backendConfigured) return
   started = true
-  const client = await supabase().catch(() => {
-    // Couldn't load the client (offline?): the next startup tries again.
+  const client = await supabase().catch(() => null)
+  if (!client) {
+    // Couldn't load the client (offline before the app was saved on the device?): try again when the
+    // connection comes back.
     started = false
-  })
-  if (!client) return
+    window.addEventListener('online', () => void startSync(), { once: true })
+    return
+  }
   client.auth.onAuthStateChange((event, session) => {
     account = session ? 'signed-in' : 'signed-out'
     if (!session) setStatus({ state: 'signed-out' })

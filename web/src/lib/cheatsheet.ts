@@ -1,4 +1,4 @@
-import { DEFAULT_TARGET, type TargetLanguage } from './languages'
+import { cheatsheetUrl, DEFAULT_TARGET, type TargetLanguage } from './languages'
 import type { PronounTable } from './pronounTable'
 
 // Cheatsheet lists: English words, each with one or more meanings (part of speech + definition), and
@@ -103,7 +103,7 @@ const banks = new Map<string, Promise<WordBank>>()
 export function loadBank(target: TargetLanguage): Promise<WordBank> {
   const cached = banks.get(target.id)
   if (cached) return cached
-  const loading = fetch(`${import.meta.env.BASE_URL}cheatsheet/top-100.${target.id}.json`)
+  const loading = fetch(cheatsheetUrl(target))
     .then((res) => {
       if (!res.ok) throw new Error(`Couldn't load the cheatsheet (${res.status})`)
       return res.json() as Promise<Generated>
