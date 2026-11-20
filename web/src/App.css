@@ -199,9 +199,10 @@ button.mic.listening {
   object-fit: contain;
 }
 
-/* Mai is drawn in indigo lines on nothing (owner's art, 2026-11-19): a white disc keeps her visible on dark paper. */
+/* Mai is drawn in indigo lines on nothing (owner's art, 2026-11-19): a cream disc, her icons' background,
+   keeps her visible on dark paper. */
 :root[data-theme='dark'] .mai-avatar {
-  background: #fff;
+  background: #f8f0de;
   border-radius: 50%;
   padding: 2px;
 }
