@@ -12,16 +12,25 @@ import { makeEntry } from '../../../../supabase/functions/_shared/entries.ts'
 import { reviewText } from '../../../../supabase/functions/_shared/review.ts'
 import { wordAlternatives } from '../../../../supabase/functions/_shared/words.ts'
 import { downloadPack } from './download'
-import { packId } from './packs'
+import { packId, usablePack } from './packs'
 import { getFile, getPacks, removePack } from './store'
 
 const STORAGE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/which-dialect`
 const text = new TextDecoder()
 
+// Which stored package each language reads (usablePack: the app's version, or an older one until the new
+// one has downloaded), looked up once per language and forgotten when its packages change.
+const readFrom = new Map<string, Promise<string>>()
+const packToRead = (lang: string) => {
+  if (!readFrom.has(lang)) readFrom.set(lang, getPacks().then((packs) => usablePack(packs, lang)?.id ?? packId(lang), () => packId(lang)))
+  return readFrom.get(lang)!
+}
+
 const load = (lang: string): wd.LoadJson => async (path) => {
-  const stored = await getFile(`${packId(lang)}/${path}`)
+  const id = await packToRead(lang)
+  const stored = await getFile(`${id}/${path}`)
   if (stored) return JSON.parse(text.decode(inflateSync(stored)))
-  const res = await fetch(`${STORAGE}/${packId(lang)}/${path}`)
+  const res = await fetch(`${STORAGE}/${id}/${path}`)
   if (!res.ok) throw new Error(`which-dialect: couldn't load ${lang}/${path} (${res.status})`)
   return res.json()
 }
@@ -45,6 +54,12 @@ export type Request =
   | { op: 'download'; lang: string }
   | { op: 'remove'; lang: string }
 
+/** After a language's packages change: its next request reads the new one from scratch. */
+function forget(lang: string) {
+  readFrom.delete(lang)
+  dictionaries.delete(lang)
+}
+
 async function run(req: Request): Promise<unknown> {
   switch (req.op) {
     case 'review':
@@ -67,10 +82,14 @@ async function run(req: Request): Promise<unknown> {
     }
     case 'frames':
       return { frames: await phrasebook.frames({ lang: req.target.code, region: req.target.region, topic: req.topic }) }
-    case 'download':
-      return downloadPack(req.lang, (progress) => self.postMessage({ progress }))
+    case 'download': {
+      const pack = await downloadPack(req.lang, (progress) => self.postMessage({ progress }))
+      forget(req.lang)
+      return pack
+    }
     case 'remove':
       for (const pack of await getPacks()) if (pack.lang === req.lang) await removePack(pack.id)
+      forget(req.lang)
       return null
   }
 }

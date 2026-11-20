@@ -7,8 +7,11 @@ import { FeedbackButton } from './components/FeedbackButton'
 import { WordFeedbackDialog } from './components/WordFeedback'
 import { SignInNudge } from './components/SignInNudge'
 import { startSync } from './lib/sync'
+import { backendConfigured } from './lib/backend'
+import { startFeedbackOutbox } from './lib/feedbackOutbox'
 import { useApplyTheme } from './lib/theme'
-import { useTargetLanguage } from './lib/languages'
+import { cheatsheetUrl, useTargetLanguage } from './lib/languages'
+import { keepOffline } from './lib/pwa'
 import { useAutoDownload } from './lib/offline/client'
 import './App.css'
 
@@ -29,10 +32,16 @@ function App() {
   // The language being learned is kept on the device, and updated, so Mai is fast (lib/offline).
   const [target] = useTargetLanguage()
   useAutoDownload(target.code)
+  // Its Cheatsheet too, for the offline app (the service worker keeps it).
+  useEffect(() => {
+    void keepOffline(cheatsheetUrl(target))
+  }, [target])
 
   // Syncing with the user's account, when they're signed in. The Supabase client loads in the background.
+  // Feedback sent offline goes out when the connection is back (lib/feedbackOutbox.ts).
   useEffect(() => {
     void startSync()
+    if (backendConfigured) startFeedbackOutbox()
   }, [])
 
   // Pages start at the top, except the Discoverer, which scrolls itself to the latest message.

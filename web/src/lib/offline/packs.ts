@@ -21,6 +21,16 @@ export const tarballUrl = (lang: string) =>
 /** Download sizes in bytes, for the Settings card before a download (measured 2026-11-01). */
 export const DOWNLOAD_SIZES: Record<string, number> = { en: 35_688_218, vi: 3_465_806, es: 12_262_517 }
 
+/**
+ * The stored package a language reads: the one at the app's version, else the newest complete one at an
+ * older version (kept until its replacement finishes downloading), so an update that couldn't download yet
+ * leaves Mai working offline on the previous data. Undefined when the language has none.
+ */
+export function usablePack(packs: PackRecord[], lang: string): PackRecord | undefined {
+  const complete = packs.filter((p) => p.lang === lang && p.complete)
+  return complete.find((p) => p.id === packId(lang)) ?? complete.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
+}
+
 /** A downloaded (or downloading) package: `complete` once every file is stored. */
 export type PackRecord = {
   id: string
