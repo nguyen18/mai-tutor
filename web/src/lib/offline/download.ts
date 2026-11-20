@@ -64,8 +64,9 @@ async function* tarFiles(stream: ReadableStream<Uint8Array>): AsyncGenerator<{ n
 /** Downloads a language's package, replacing an unfinished or older one. */
 export async function downloadPack(lang: string, onProgress: (p: Progress) => void): Promise<PackRecord> {
   const id = packId(lang)
-  // Packages of this language at other versions, and an unfinished one at this version, are removed first.
-  for (const old of await getPacks()) if (old.lang === lang && (old.id !== id || !old.complete)) await removePack(old.id)
+  // An unfinished download at this version is removed first. Other versions stay until this one is complete
+  // (an update downloaded while offline used to delete the working package and store nothing).
+  for (const old of await getPacks()) if (old.id === id && !old.complete) await removePack(old.id)
 
   const res = await fetch(tarballUrl(lang))
   if (!res.ok || !res.body) throw new Error(`Couldn't download ${lang} (${res.status})`)
@@ -104,5 +105,6 @@ export async function downloadPack(lang: string, onProgress: (p: Progress) => vo
   pack.complete = true
   pack.updatedAt = new Date().toISOString()
   await putPack(pack)
+  for (const old of await getPacks()) if (old.lang === lang && old.id !== id) await removePack(old.id)
   return pack
 }
