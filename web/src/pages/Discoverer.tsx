@@ -5,7 +5,7 @@ import { saveMyWords } from '../lib/myWords'
 import { useStored } from '../lib/localStore'
 import { ROUTE_HREF } from '../lib/useRoute'
 import { dictationSupported, useDictation } from '../lib/useDictation'
-import maiAvatar from '../assets/mai-placeholder.png'
+import maiAvatar from '../assets/mai.png'
 
 const FILLER_CHIPS = ['um', 'uh']
 
