@@ -18,3 +18,6 @@ export function useTargetLanguage(): [TargetLanguage, (id: string) => void] {
   const [id, setId] = useStored<string | null>('mai-tutor:target-language', null, PLAIN)
   return [targetById(id), setId]
 }
+
+/** A language's pre-built Cheatsheet file (public/cheatsheet, made by `npm run cheatsheet`). */
+export const cheatsheetUrl = (target: TargetLanguage) => `${import.meta.env.BASE_URL}cheatsheet/top-100.${target.id}.json`

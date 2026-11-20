@@ -38,6 +38,8 @@ export function FeedbackForm({
   const [preview, setPreview] = useState<string | null>(null)
   const [state, setStateOnly] = useState<FeedbackState>('editing')
   const [error, setError] = useState<string | null>(null)
+  // Sent while offline: it waits on the device and goes by itself when back online.
+  const [queued, setQueued] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   // After any details already there, once when the box appears.
   const cursorAtEnd = useCallback((box: HTMLTextAreaElement | null) => box?.setSelectionRange(box.value.length, box.value.length), [])
@@ -59,6 +61,7 @@ export function FeedbackForm({
     setDetails(initialDetails)
     pick(null)
     setError(null)
+    setQueued(false)
     setState('editing')
   }
 
@@ -70,7 +73,8 @@ export function FeedbackForm({
     setState('sending')
     setError(null)
     try {
-      await sendFeedback({ summary, details, image, context, kind })
+      const result = await sendFeedback({ summary, details, image, context, kind })
+      setQueued(result.queued)
       setState('sent')
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't send it. Try again.")
@@ -82,7 +86,15 @@ export function FeedbackForm({
     return (
       <div className="feedback-sent">
         <p>
-          <strong>Thanks!</strong> Your feedback is on its way.
+          {queued ? (
+            <>
+              <strong>Saved.</strong> You're offline, so it'll send by itself when you're back online.
+            </>
+          ) : (
+            <>
+              <strong>Thanks!</strong> Your feedback is on its way.
+            </>
+          )}
         </p>
         <div className="feedback-actions">
           <button type="button" className="link" onClick={reset}>
