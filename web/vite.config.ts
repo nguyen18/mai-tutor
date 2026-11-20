@@ -19,8 +19,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        // Cream, like the icon's background (owner's request 2026-11-19): the launch screen behind it.
-        background_color: '#f8f0de',
+        // White, like the icon's background (owner's request 2026-11-20; cream the day before): the launch screen.
+        background_color: '#ffffff',
         theme_color: '#ffffff',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },

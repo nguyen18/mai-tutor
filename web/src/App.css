@@ -199,7 +199,7 @@ button.mic.listening {
   object-fit: contain;
 }
 
-/* Mai's picture (owner's art, 2026-11-20) is on cream like her app icon, cut to a circle, so the page's
+/* Mai's picture (owner's art, 2026-11-20) is on white like her app icon, cut to a circle, so the page's
    grid never shows through her face, in either theme. */
 .mai-avatar {
   border-radius: 50%;
